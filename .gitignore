@@ -9,6 +9,7 @@
 *.jpg
 *.png
 *.gif
+*.zip
 Cat_Dog_data.zip
 *-ubyte
 *-ubyte.gz

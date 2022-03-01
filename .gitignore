@@ -7,6 +7,8 @@
 
 # images
 *.jpg
+*.png
+*.gif
 Cat_Dog_data.zip
 *-ubyte
 *-ubyte.gz

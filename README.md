@@ -10,31 +10,29 @@ By completing this lab, you demonstrate your understanding of the challenges inv
 
 Each model has its strengths and weaknesses, and engineering a real-world application often involves solving many problems without a perfect answer.
 
-
 ## Project Instructions
 
 ### Instructions
 
 1. Clone the repository and navigate to the downloaded folder.
-	
-	```	
-		git clone https://github.com/udacity/nd101-c2-landmarks-starter.git
-		cd nd101-c2-landmarks-starter/landmark_project
-	```
+
+ ```bash
+  git clone https://github.com/udacity/nd101-c2-landmarks-starter.git
+  cd nd101-c2-landmarks-starter/landmark_project
+ ```
+
 2. Download the dataset included below in the "Dataset Info" section. Note that this will be provided for you if using the workspace in the Udacity classroom.
 3. Open a terminal window and navigate to the project folder. Open the notebook and follow the instructions.
-	
-	```
-		jupyter notebook landmark.ipynb
-	```
+
+ ```bash
+  jupyter notebook landmark.ipynb
+ ```
 
 __NOTE:__ While some code has already been implemented to get you started, you will need to implement additional functionality to successfully answer all of the questions included in the notebook. __Unless requested, do not modify code that has already been included.__
 
 __NOTE:__ In the notebook, you will need to train CNNs in PyTorch.  If your CNN is taking too long to train, feel free to pursue one of the options under the section __Accelerating the Training Process__ below.
 
-
-
-## (Optionally) Accelerating the Training Process 
+## (Optionally) Accelerating the Training Process
 
 If your code is taking too long to run, you will need to either reduce the complexity of your chosen CNN architecture or switch to running your code on a GPU.  If you'd like to use a GPU, you can spin up an instance of your own:
 
@@ -44,7 +42,7 @@ A GPU workspace is available from within the Udacity classroom. Make sure you sa
 
 ### Amazon Web Services
 
-You can also use Amazon Web Services to launch an EC2 GPU instance.
+You can also use Amazon Web Services to launch an EC2 GPU instance.  This [article](https://medium.com/@christyjacob4/using-vscode-remotely-on-an-ec2-instance-7822c4032cff) shows you how to connect to a GPU ec2 instance.
 
 ## Evaluation
 
@@ -53,6 +51,7 @@ Your project will be reviewed by a Udacity reviewer against the CNN project rubr
 ## Project Submission
 
 Your submission should consist of the github link to your repository.  Your repository should contain:
+
 - The `landmark.ipynb` file with fully functional code, all code cells executed and displaying output, and all questions answered.
 - An HTML or PDF export of the project notebook with the name `report.html` or `report.pdf`.
 
@@ -69,3 +68,8 @@ classroom workspace, the dataset is provided therein; otherwise it can be obtain
 [this link](https://udacity-dlnfd.s3-us-west-1.amazonaws.com/datasets/landmark_images.zip).
 
 You can find license information for the full dataset [on Kaggle](https://www.kaggle.com/google/google-landmarks-dataset).
+
+# References and Helpful Sites
+
+- [Pytorch Example from Stanford Student](https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel)
+- [Pytorch Documentation - Dataset Tutorial](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)

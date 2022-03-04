@@ -25,47 +25,76 @@ import os
 from typing import List
 
 # Data Wrangling packages
-import pandas as pd
+import re
+from numpy import imag # For regular expressions
 
 # Pytorch pacakges
 from torchvision.io import read_image
 from torch.utils.data import Dataset
 from msilib.schema import Error
 
+"""So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
+train partition = all image ids, but they should follow the label order.
+"""
+
+# Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 class CustomImageDataset(Dataset):
-    def __init__(self, img_dir:str, transform=None, target_transform=None):
+    def __init__(self, img_dir:str, transform=None, target_transform=None,  folders:str=['train','test']):
         self.img_labels = None
         self.img_dir = img_dir
         self.transform = transform
         self.target_transform = target_transform
-        self._get_labels(img_dir)
+        self.folders = folders
+        # key is the folder name from self.folders, starting indices of images for
+        self.folder_indicies = {}  
 
-    def _get_labels(self, img_dir:str)->List[str]:
-        if(self._check_img_dir(img_dir)):
-            pass
+        self._generate_img_indices(img_dir)
         
+    def _generate_img_indices(self,img_dir:str):
+        if(self._check_img_dir(img_dir)):
+            images = []
+            labels = {}
+            index = 0
+            for folder in self.folders:
+                root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linus specific
+                self.folder_indicies[folder]=index
+                # Image ids are the path to the image.
+                for root, dirs, files in os.walk(root_dir, topdown=False):
+                    for dir_name in dirs:    
+                        for file_name in files:
+                            path=(os.path.join(root, dir_name, file_name.replace(" ","\\ "))) #id
+                            class_label = dir_name
+                            labels[path] = class_label
+                            images.append(path)
+                            index = index + 1
 
-    def _check_img_dir(self, img_dir:str)->bool:
+            self.images = images
+            self.img_labels = labels
+        else:
+            raise Error("Unable to locate labels")
+        return images, labels
+
+      
+    def check_img_dir(self, img_dir:str)->bool:
         level1_dir = os.listdir(img_dir)
         
         # check that test, train, validation in. 
-        has_test = 'test' in level1_dir
-        has_train = 'train' in level1_dir
-        
-        if(has_test==False or has_train==False):
-            raise Error(f"Train({has_train}) and test({has_test}) are not included in the root image directory")
-        
-        test_is_dir = os.path.isdir(img_dir+'/test')
-        train_is_dir = os.path.isdir(img_dir+'/train')
+        for folder in self.folders:
+            has_folder = (
+                (folder in level1_dir) and 
+                (os.path.isdir(os.path.join(img_dir,folder)))
+            )
+            print(f"{folder} is a sub directory in the image directory?: {has_folder}")
+            if has_folder == False:
+                return(False)
 
-        if(test_is_dir==False or train_is_dir==False):
-            raise Error(f"Train({train_is_dir}) and test({test_is_dir}) are not directories")
-            
-        return True
+        return(True)
+
 
     def __len__(self):
         return len(self.img_labels)
 
+    # START HERE
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
         image = read_image(img_path)

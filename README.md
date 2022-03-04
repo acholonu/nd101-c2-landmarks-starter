@@ -1,4 +1,4 @@
-## Project Overview
+# Project Overview
 
 Welcome to the Convolutional Neural Networks (CNN) project!
 In this project, you will learn how to build a pipeline to process real-world, user-supplied images.
@@ -69,7 +69,7 @@ classroom workspace, the dataset is provided therein; otherwise it can be obtain
 
 You can find license information for the full dataset [on Kaggle](https://www.kaggle.com/google/google-landmarks-dataset).
 
-# References and Helpful Sites
+## References and Helpful Sites
 
 - [Pytorch Example from Stanford Student](https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel)
 - [Pytorch Documentation - Dataset Tutorial](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)

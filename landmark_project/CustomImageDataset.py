@@ -22,7 +22,7 @@
 
 # System packages
 import os
-from typing import List
+from typing import List, Tuple
 
 # Data Wrangling packages
 import re
@@ -45,7 +45,7 @@ class CustomImageDataset(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         self.folders = folders
-        # key is the folder name from self.folders, starting indices of images for
+        # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indicies = {}  
 
         self._generate_img_indices(img_dir)
@@ -57,7 +57,8 @@ class CustomImageDataset(Dataset):
             index = 0
             for folder in self.folders:
                 root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linus specific
-                self.folder_indicies[folder]=index
+                start_index = index
+                
                 # Image ids are the path to the image.
                 for root, dirs, files in os.walk(root_dir, topdown=False):
                     for dir_name in dirs:    
@@ -67,6 +68,7 @@ class CustomImageDataset(Dataset):
                             labels[path] = class_label
                             images.append(path)
                             index = index + 1
+                self.folder_indicies[folder] = (start_index, index)
 
             self.images = images
             self.img_labels = labels
@@ -94,13 +96,19 @@ class CustomImageDataset(Dataset):
     def __len__(self):
         return len(self.img_labels)
 
-    # START HERE
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        img_path = os.path.join(self.img_dir, self.images.iloc[idx])
+        print(f"image path: {img_path}")
+
         image = read_image(img_path)
-        label = self.img_labels.iloc[idx, 1]
+        label = self.img_labels.iloc[idx]
+        print(f"label: {label}")
+
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
         return image, label
+
+    def get_folder_img_index_range(self, folder:str)->Tuple:
+        return(self.folder_indicies[folder])

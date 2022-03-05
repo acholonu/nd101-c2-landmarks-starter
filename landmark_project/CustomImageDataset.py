@@ -22,11 +22,7 @@
 
 # System packages
 import os
-from typing import List, Tuple
-
-# Data Wrangling packages
-import re
-from numpy import imag # For regular expressions
+from typing import Tuple
 
 # Pytorch pacakges
 from torchvision.io import read_image

@@ -27,7 +27,6 @@ from typing import Tuple
 # Pytorch pacakges
 from torchvision.io import read_image
 from torch.utils.data import Dataset
-from msilib.schema import Error
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
 train partition = all image ids, but they should follow the label order.
@@ -69,7 +68,7 @@ class CustomImageDataset(Dataset):
             self.images = images
             self.img_labels = labels
         else:
-            raise Error("Unable to locate labels")
+            raise Exception("Unable to locate images and labels")
         return images, labels
 
       

@@ -22,6 +22,7 @@
 
 # System packages
 import os
+import argparse
 from typing import Tuple
 
 # Pytorch pacakges
@@ -62,29 +63,29 @@ class CustomImageDataset(Dataset):
             img_dir (str): file path to image directory
 
         Raises:
-            Exception: _description_
+            Exception: If images and/or labels cannot be found an error is generated.
 
         Returns:
             list, dictionary: Id's of image, and the index of for the labels for each image id.
         """
-        if(self._check_img_dir(img_dir)):
+        if(self.check_img_dir(img_dir)):
             images = []
             labels = {}
             index = 0
             for folder in self.folders:
-                root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linux specific
+                root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linux zsh specific
                 start_index = index
                 
                 # Image ids are the path to the image.
                 for root, dirs, files in os.walk(root_dir, topdown=False):
-                    for dir_name in dirs:    
+                    for dir_name in root:    
                         for file_name in files:
-                            path=(os.path.join(root, dir_name, file_name.replace(" ","\\ "))) #id
-                            class_label = dir_name
-                            labels[path] = class_label
+                            path=(os.path.join(root, file_name.replace(" ","\\ "))) #id
+                            class_label = os.path.basename(root)
+                            labels[path] = class_label #TODO: remove the number XX.Death_Valley_National_Park from labels
                             images.append(path)
                             index = index + 1
-                self.folder_indicies[folder] = (start_index, index)
+                self.folder_indicies[folder] = (start_index, index) #TODO: This is wrong: Need to know the difference between training images and validation images which is based on the images in the train folder
 
             self.images = images
             self.img_labels = labels
@@ -97,7 +98,7 @@ class CustomImageDataset(Dataset):
         """Checks that folders defined in the constructor exist in image directory
 
         Args:
-            img_dir (str): File path to the image directory.
+            img_dir (str): path to the image directory.
 
         Returns:
             bool: True if the image directory exists and has the defined folders located in the
@@ -148,3 +149,15 @@ class CustomImageDataset(Dataset):
     def get_folder_img_index_range(self, folder:str)->Tuple:
         """Returens the range of indicies for the particular folder sent in."""
         return(self.folder_indicies[folder])
+
+def main():
+    """Used to test the class."""
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument("--img_dir",required=True, help="directory path", type=str)
+    #args = parser.parse_known_args()
+    #cd = CustomImageDataset(args.img_dir)
+
+    cd = CustomImageDataset("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
+
+if __name__ == "__main__":
+    main()

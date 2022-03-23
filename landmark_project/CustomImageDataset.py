@@ -34,7 +34,16 @@ train partition = all image ids, but they should follow the label order.
 
 # Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 class CustomImageDataset(Dataset):
-    def __init__(self, img_dir:str, transform=None, target_transform=None,  folders:str=['train','test']):
+    def __init__(
+        self, 
+        img_dir:str, 
+        transform=None, 
+        target_transform=None,  
+        folders:str=['train','test']
+        ):
+
+        """Class constructor"""
+        
         self.img_labels = None
         self.img_dir = img_dir
         self.transform = transform
@@ -44,14 +53,26 @@ class CustomImageDataset(Dataset):
         self.folder_indicies = {}  
 
         self._generate_img_indices(img_dir)
+
         
     def _generate_img_indices(self,img_dir:str):
+        """_summary_
+
+        Args:
+            img_dir (str): file path to image directory
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            list, dictionary: Id's of image, and the index of for the labels for each image id.
+        """
         if(self._check_img_dir(img_dir)):
             images = []
             labels = {}
             index = 0
             for folder in self.folders:
-                root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linus specific
+                root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linux specific
                 start_index = index
                 
                 # Image ids are the path to the image.
@@ -73,6 +94,18 @@ class CustomImageDataset(Dataset):
 
       
     def check_img_dir(self, img_dir:str)->bool:
+        """Checks that folders defined in the constructor exist in image directory
+
+        Args:
+            img_dir (str): File path to the image directory.
+
+        Returns:
+            bool: True if the image directory exists and has the defined folders located in the
+            directory.
+        """
+        if os.path.isdir(img_dir) == False:
+            return(False)
+
         level1_dir = os.listdir(img_dir)
         
         # check that test, train, validation in. 
@@ -84,14 +117,21 @@ class CustomImageDataset(Dataset):
             print(f"{folder} is a sub directory in the image directory?: {has_folder}")
             if has_folder == False:
                 return(False)
-
         return(True)
 
-
     def __len__(self):
+        """Returns the total number of images that are in the image directory."""
         return len(self.img_labels)
 
     def __getitem__(self, idx):
+        """Get image and label based on index
+
+        Args:
+            idx (str): The image id.
+
+        Returns:
+            _type_: _description_
+        """
         img_path = os.path.join(self.img_dir, self.images.iloc[idx])
         print(f"image path: {img_path}")
 
@@ -106,4 +146,5 @@ class CustomImageDataset(Dataset):
         return image, label
 
     def get_folder_img_index_range(self, folder:str)->Tuple:
+        """Returens the range of indicies for the particular folder sent in."""
         return(self.folder_indicies[folder])

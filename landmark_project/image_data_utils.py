@@ -24,6 +24,7 @@
 import os
 import re
 import argparse
+from signal import valid_signals
 from matplotlib import transforms
 import numpy as np
 from typing import Tuple
@@ -32,6 +33,7 @@ from typing import Tuple
 from torchvision.io import read_image
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
+from torch.utils.data.sampler import SubsetRandomSampler
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
 train partition = all image ids, but they should follow the label order.
@@ -44,13 +46,15 @@ class CustomImageDataset(Dataset):
         self,
         images:list,
         img_labels:list, 
-        transform:transforms=None, 
+        transform:transforms=None,
+        sampler:SubsetRandomSampler=None, 
         #target_transform=None,  
         ) -> None:
 
         self.img_labels = img_labels
         self.images = images
         self.transform = transform
+        self.sampler=sampler
         #self.target_transform = target_transform
 
     def __len__(self)->int:
@@ -99,12 +103,14 @@ class ImageCollection():
         self,
         indicies:list,
         transform:transforms,
+        sampler:SubsetRandomSampler,
         )->CustomImageDataset:
         
         dataset = CustomImageDataset(
             self.images[indicies],
             self.img_labels[indicies],
-            transform
+            transform,
+            sampler,
             )
 
         return(dataset)
@@ -123,8 +129,12 @@ class ImageCollection():
         num_train = len(indices)
         split = int(np.floor(valid_size * num_train))
         train_idx, valid_idx = indices[split:], indices[:split]
-        train_dataset = self._generate_dataset(train_idx,transform)
-        validation_dataset = self._generate_dataset(valid_idx,transform)
+        
+        train_sampler = SubsetRandomSampler(train_idx)
+        valid_sampler = SubsetRandomSampler(valid_idx)
+        
+        train_dataset = self._generate_dataset(train_idx,transform, train_sampler)
+        validation_dataset = self._generate_dataset(valid_idx,transform, valid_sampler)
         result = {
             "train" : train_dataset,
             "validation" : validation_dataset

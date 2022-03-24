@@ -24,41 +24,121 @@
 import os
 import re
 import argparse
+from matplotlib import transforms
+import numpy as np
 from typing import Tuple
 
 # Pytorch pacakges
 from torchvision.io import read_image
 from torch.utils.data import Dataset
+import torchvision.transforms as transforms
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
 train partition = all image ids, but they should follow the label order.
 """
 
 # Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
+
 class CustomImageDataset(Dataset):
+    def __init__(
+        self,
+        images:list,
+        img_labels:list, 
+        transform:transforms=None, 
+        #target_transform=None,  
+        ) -> None:
+
+        self.img_labels = img_labels
+        self.images = images
+        self.transform = transform
+        #self.target_transform = target_transform
+
+    def __len__(self)->int:
+        """Returns the total number of images that are in the image directory."""
+        return len(self.img_labels)
+
+    def __getitem__(self, idx):
+        """Get image and label based on index
+
+        Args:
+            idx (str): The image id.
+
+        Returns:
+            _type_: _description_
+        """
+        img_path = os.path.join(self.img_dir, self.images.iloc[idx])
+        print(f"image path: {img_path}")
+
+        image = read_image(img_path)
+        label = self.img_labels.iloc[idx]
+        print(f"label: {label}")
+
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label
+        
+class DirectoryImageMapper():
     def __init__(
         self, 
         img_dir:str, 
-        transform=None, 
-        target_transform=None,  
         folders:str=['train','test']
         ):
 
         """Class constructor"""
-        
+        self.images = None
         self.img_labels = None
         self.img_dir = img_dir
-        self.transform = transform
-        self.target_transform = target_transform
         self.folders = folders
         # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indicies = {}  
-
         self._generate_img_indices(img_dir)
 
+    def _generate_dataset(
+        self,
+        indicies:list,
+        transform:transforms,
+        )->CustomImageDataset:
+        
+        dataset = CustomImageDataset(
+            self.images[indicies],
+            self.img_labels[indicies],
+            transform
+            )
+            
+        return(dataset)
+
+        
+
+    def generate_train_valid_dataset(
+        self, 
+        valid_size = 0.2,
+        transform:transforms = None 
+        ) -> dict:
+
+        train_indices = self.folder_indicies['train']
+        indices = list(range(train_indices[0],train_indices[1]))
+        np.random.shuffle(indices)
+        num_train = len(indices)
+        split = int(np.floor(valid_size * num_train))
+        train_idx, valid_idx = indices[split:], indices[:split]
+        train_dataset = self._generate_dataset(train_idx,transform)
+        validation_dataset = self._generate_dataset(valid_idx,transform)
+        result = {
+            "train" : train_dataset,
+            "validation" : validation_dataset
+        }
+        return result
+
+    def generate_test_dataset(self, transform:transforms = None)->CustomImageDataset:
+        test_indices = self.folder_indicies['test']
+        indices = list(range(test_indices[0],test_indices[1]))
+        test_dataset = self._generate_dataset(indices,transform)
+        return(test_dataset)
         
     def _generate_img_indices(self,img_dir:str):
-        """_summary_
+        """Create the unique identifer for the images
 
         Args:
             img_dir (str): file path to image directory
@@ -120,32 +200,6 @@ class CustomImageDataset(Dataset):
             if has_folder == False:
                 return(False)
         return(True)
-
-    def __len__(self):
-        """Returns the total number of images that are in the image directory."""
-        return len(self.img_labels)
-
-    def __getitem__(self, idx):
-        """Get image and label based on index
-
-        Args:
-            idx (str): The image id.
-
-        Returns:
-            _type_: _description_
-        """
-        img_path = os.path.join(self.img_dir, self.images.iloc[idx])
-        print(f"image path: {img_path}")
-
-        image = read_image(img_path)
-        label = self.img_labels.iloc[idx]
-        print(f"label: {label}")
-
-        if self.transform:
-            image = self.transform(image)
-        if self.target_transform:
-            label = self.target_transform(label)
-        return image, label
 
     def get_folder_img_index_range(self, folder:str)->Tuple:
         """Returens the range of indicies for the particular folder sent in."""

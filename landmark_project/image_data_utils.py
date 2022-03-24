@@ -79,7 +79,7 @@ class CustomImageDataset(Dataset):
             label = self.target_transform(label)
         return image, label
         
-class DirectoryImageMapper():
+class ImageCollection():
     def __init__(
         self, 
         img_dir:str, 
@@ -106,7 +106,7 @@ class DirectoryImageMapper():
             self.img_labels[indicies],
             transform
             )
-            
+
         return(dataset)
 
         

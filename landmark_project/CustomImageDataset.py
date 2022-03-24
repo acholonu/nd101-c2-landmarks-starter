@@ -86,7 +86,7 @@ class CustomImageDataset(Dataset):
                             labels[path] = class_label
                             images.append(path)
                             index = index + 1
-                self.folder_indicies[folder] = (start_index, index)
+                self.folder_indicies[folder] = (start_index, index-1)
 
             self.images = images
             self.img_labels = labels

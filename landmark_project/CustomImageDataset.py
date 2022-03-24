@@ -22,6 +22,7 @@
 
 # System packages
 import os
+import re
 import argparse
 from typing import Tuple
 
@@ -81,11 +82,11 @@ class CustomImageDataset(Dataset):
                     for dir_name in root:    
                         for file_name in files:
                             path=(os.path.join(root, file_name.replace(" ","\\ "))) #id
-                            class_label = os.path.basename(root)
-                            labels[path] = class_label #TODO: remove the number XX.Death_Valley_National_Park from labels
+                            class_label = re.sub("[0-9][0-9].",'',os.path.basename(root))
+                            labels[path] = class_label
                             images.append(path)
                             index = index + 1
-                self.folder_indicies[folder] = (start_index, index) #TODO: This is wrong: Need to know the difference between training images and validation images which is based on the images in the train folder
+                self.folder_indicies[folder] = (start_index, index)
 
             self.images = images
             self.img_labels = labels

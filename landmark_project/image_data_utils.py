@@ -1,4 +1,4 @@
-""" Image directory assumption
+"""Image directory assumption
 
     root-image-directory
         --train
@@ -47,21 +47,21 @@ class CustomImageDataset(Dataset):
         images:list,
         img_labels:list, 
         transform:transforms=None,
-        sampler:SubsetRandomSampler=None, 
-        #target_transform=None,  
+        target_transform:transforms = None,
+        sampler:SubsetRandomSampler=None,  
         ) -> None:
 
         self.img_labels = img_labels
         self.images = images
         self.transform = transform
-        self.sampler=sampler
-        #self.target_transform = target_transform
+        self.target_transform = target_transform
+        self.sampler=sampler 
 
     def __len__(self)->int:
         """Returns the total number of images that are in the image directory."""
         return len(self.img_labels)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, apply_transform = True):
         """Get image and label based on index
 
         Args:
@@ -79,7 +79,7 @@ class CustomImageDataset(Dataset):
 
         if self.transform:
             image = self.transform(image)
-        if self.target_transform:
+        if self.target_transform and apply_transform:
             label = self.target_transform(label)
         return image, label
         
@@ -132,7 +132,7 @@ class ImageCollection():
         
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
-        
+
         train_dataset = self._generate_dataset(train_idx,transform, train_sampler)
         validation_dataset = self._generate_dataset(valid_idx,transform, valid_sampler)
         result = {
@@ -222,7 +222,9 @@ def main():
     #args = parser.parse_known_args()
     #cd = CustomImageDataset(args.img_dir)
 
-    cd = CustomImageDataset("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
+    ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
+    data = ic.generate_train_valid_dataset(transform=transforms.CenterCrop(size=300))
+    test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
 
 if __name__ == "__main__":
     main()

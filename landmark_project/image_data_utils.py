@@ -24,7 +24,6 @@
 import os
 import re
 import argparse
-from signal import valid_signals
 from matplotlib import transforms
 import numpy as np
 from typing import Tuple
@@ -34,6 +33,7 @@ from torchvision.io import read_image
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data import DataLoader
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
 train partition = all image ids, but they should follow the label order.
@@ -61,7 +61,7 @@ class CustomImageDataset(Dataset):
         """Returns the total number of images that are in the image directory."""
         return len(self.img_labels)
 
-    def __getitem__(self, idx, apply_transform = True):
+    def __getitem__(self, idx):
         """Get image and label based on index
 
         Args:
@@ -79,7 +79,7 @@ class CustomImageDataset(Dataset):
 
         if self.transform:
             image = self.transform(image)
-        if self.target_transform and apply_transform:
+        if self.target_transform:
             label = self.target_transform(label)
         return image, label
         
@@ -96,26 +96,25 @@ class ImageCollection():
         self.img_dir = img_dir
         self.folders = folders
         # key is the folder name from self.folders, starting indices of images in that folder
-        self.folder_indicies = {}  
+        self.folder_indices = {}  
         self._generate_img_indices(img_dir)
 
     def _generate_dataset(
         self,
-        indicies:list,
+        indices:list,
         transform:transforms,
         sampler:SubsetRandomSampler,
         )->CustomImageDataset:
         
+        images = [ self.images[x] for x in indices]
+        labels = [ self.img_labels[x] for x in indices]
         dataset = CustomImageDataset(
-            self.images[indicies],
-            self.img_labels[indicies],
+            images,
+            labels,
             transform,
             sampler,
             )
-
         return(dataset)
-
-        
 
     def generate_train_valid_dataset(
         self, 
@@ -123,7 +122,7 @@ class ImageCollection():
         transform:transforms = None 
         ) -> dict:
 
-        train_indices = self.folder_indicies['train']
+        train_indices = self.folder_indices['train']
         indices = list(range(train_indices[0],train_indices[1]))
         np.random.shuffle(indices)
         num_train = len(indices)
@@ -142,7 +141,7 @@ class ImageCollection():
         return result
 
     def generate_test_dataset(self, transform:transforms = None)->CustomImageDataset:
-        test_indices = self.folder_indicies['test']
+        test_indices = self.folder_indices['test']
         indices = list(range(test_indices[0],test_indices[1]))
         test_dataset = self._generate_dataset(indices,transform)
         return(test_dataset)
@@ -176,7 +175,7 @@ class ImageCollection():
                             labels[path] = class_label
                             images.append(path)
                             index = index + 1
-                self.folder_indicies[folder] = (start_index, index-1)
+                self.folder_indices[folder] = (start_index, index-1)
 
             self.images = images
             self.img_labels = labels
@@ -212,8 +211,8 @@ class ImageCollection():
         return(True)
 
     def get_folder_img_index_range(self, folder:str)->Tuple:
-        """Returens the range of indicies for the particular folder sent in."""
-        return(self.folder_indicies[folder])
+        """Returens the range of indices for the particular folder sent in."""
+        return(self.folder_indices[folder])
 
 def main():
     """Used to test the class."""
@@ -224,7 +223,26 @@ def main():
 
     ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
     data = ic.generate_train_valid_dataset(transform=transforms.CenterCrop(size=300))
-    test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
+    #test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
+
+    num_workers = 0
+    # how many samples per batch to load
+    batch_size = 20 #64
+    # percentage of training set to use as validation
+    valid_size = 0.2
+
+    train_loader = DataLoader(
+        data['train'],
+        batch_size = batch_size,
+        sampler=(data['train']).sampler,
+        num_workers = num_workers
+    )
+    
+    # obtain one batch of training images
+    dataiter = iter(train_loader)
+    images, labels = dataiter.next()
+    images = images.numpy()
+
 
 if __name__ == "__main__":
     main()

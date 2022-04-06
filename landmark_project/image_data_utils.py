@@ -44,6 +44,7 @@ train partition = all image ids, but they should follow the label order.
 class CustomImageDataset(Dataset):
     def __init__(
         self,
+        img_dir:str,
         images:list,
         img_labels:list, 
         transform:transforms=None,
@@ -51,6 +52,7 @@ class CustomImageDataset(Dataset):
         sampler:SubsetRandomSampler=None,  
         ) -> None:
 
+        self.img_dir = img_dir
         self.img_labels = img_labels
         self.images = images
         self.transform = transform
@@ -70,7 +72,7 @@ class CustomImageDataset(Dataset):
         Returns:
             _type_: _description_
         """
-        img_path = os.path.join(self.img_dir, self.images.iloc[idx])
+        img_path = os.path.join(self.img_dir, self.images[idx])
         print(f"image path: {img_path}")
 
         image = read_image(img_path)
@@ -87,14 +89,14 @@ class ImageCollection():
     def __init__(
         self, 
         img_dir:str, 
-        folders:str=['train','test']
+        folders:list=['train','test']
         ):
 
         """Class constructor"""
-        self.images = None
-        self.img_labels = None
-        self.img_dir = img_dir
-        self.folders = folders
+        self.images:list = None
+        self.img_labels:list = None
+        self.img_dir:str = img_dir
+        self.folders:list = folders
         # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
@@ -107,8 +109,9 @@ class ImageCollection():
         )->CustomImageDataset:
         
         images = [ self.images[x] for x in indices]
-        labels = [ self.img_labels[x] for x in indices]
+        labels = [ self.img_labels[x] for x in indices] # TODO: I did not provide a label for each image
         dataset = CustomImageDataset(
+            self.img_dir,
             images,
             labels,
             transform,
@@ -160,7 +163,7 @@ class ImageCollection():
         """
         if(self.check_img_dir(img_dir)):
             images = []
-            labels = {}
+            labels = []
             index = 0
             for folder in self.folders:
                 root_dir = os.path.join(img_dir,folder).replace(" ","\\ ") # Mac/Linux zsh specific
@@ -172,13 +175,13 @@ class ImageCollection():
                         for file_name in files:
                             path=(os.path.join(root, file_name.replace(" ","\\ "))) #id
                             class_label = re.sub("[0-9][0-9].",'',os.path.basename(root))
-                            labels[path] = class_label
+                            labels.append(class_label)
                             images.append(path)
                             index = index + 1
                 self.folder_indices[folder] = (start_index, index-1)
 
-            self.images = images
-            self.img_labels = labels
+            self.images = images.copy()
+            self.img_labels = labels.copy()
         else:
             raise Exception("Unable to locate images and labels")
         return images, labels
@@ -214,16 +217,12 @@ class ImageCollection():
         """Returens the range of indices for the particular folder sent in."""
         return(self.folder_indices[folder])
 
-def main():
+def test():
     """Used to test the class."""
     #parser = argparse.ArgumentParser()
     #parser.add_argument("--img_dir",required=True, help="directory path", type=str)
     #args = parser.parse_known_args()
     #cd = CustomImageDataset(args.img_dir)
-
-    ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
-    data = ic.generate_train_valid_dataset(transform=transforms.CenterCrop(size=300))
-    #test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
 
     num_workers = 0
     # how many samples per batch to load
@@ -231,18 +230,27 @@ def main():
     # percentage of training set to use as validation
     valid_size = 0.2
 
+    ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
+    data = ic.generate_train_valid_dataset(
+            valid_size = valid_size, 
+            transform=transforms.CenterCrop(size=300)
+        )
+    #test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
+
+    
+
     train_loader = DataLoader(
         data['train'],
         batch_size = batch_size,
         sampler=(data['train']).sampler,
         num_workers = num_workers
     )
-    
+
     # obtain one batch of training images
     dataiter = iter(train_loader)
     images, labels = dataiter.next()
     images = images.numpy()
-
+    print(labels)
 
 if __name__ == "__main__":
-    main()
+    test()

@@ -32,7 +32,7 @@ from typing import Tuple
 from torchvision.io import read_image
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
-from torch.utils.data.sampler import SubsetRandomSampler
+# from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
@@ -43,19 +43,19 @@ train partition = all image ids, but they should follow the label order.
 
 class CustomImageDataset(Dataset):
     def __init__(
-        self,
-        images:list,
-        img_labels:list, 
-        transform:transforms=None,
-        target_transform:transforms = None,
-        sampler:SubsetRandomSampler=None,  
+            self,
+            images:list,
+            img_labels:list, 
+            transform:transforms=None,
+            target_transform:transforms = None,
+            #sampler:SubsetRandomSampler=None,  
         ) -> None:
 
         self.img_labels = img_labels
         self.images = images
         self.transform = transform
         self.target_transform = target_transform
-        self.sampler=sampler 
+        #self.sampler=sampler 
 
     def __len__(self)->int:
         """Returns the total number of images that are in the image directory."""
@@ -103,18 +103,17 @@ class ImageCollection():
         self,
         indices:list,
         transform:transforms,
-        sampler:SubsetRandomSampler,
         target_transform:transforms = None
         )->CustomImageDataset:
         
         images = [ self.images[x] for x in indices]
         labels = [ self.img_labels[x] for x in indices]
         dataset = CustomImageDataset(
-            images,
-            labels,
-            transform,
-            target_transform,
-            sampler
+                images,
+                labels,
+                transform,
+                target_transform,
+                #sampler
             )
         return(dataset)
 
@@ -136,8 +135,8 @@ class ImageCollection():
         #train_sampler = SubsetRandomSampler(train_idx)
         #valid_sampler = SubsetRandomSampler(valid_idx)
 
-        train_dataset = self._generate_dataset(train_idx,transform, None)
-        validation_dataset = self._generate_dataset(valid_idx,transform, None)
+        train_dataset = self._generate_dataset(train_idx,transform)
+        validation_dataset = self._generate_dataset(valid_idx,transform)
         result = {
             "train" : train_dataset,
             "validation" : validation_dataset
@@ -242,7 +241,6 @@ def test():
     train_loader = DataLoader(
         data['train'],
         batch_size = batch_size,
-        sampler=(data['train']).sampler,
         num_workers = num_workers
     )
 

@@ -44,7 +44,6 @@ train partition = all image ids, but they should follow the label order.
 class CustomImageDataset(Dataset):
     def __init__(
         self,
-        img_dir:str,
         images:list,
         img_labels:list, 
         transform:transforms=None,
@@ -52,7 +51,6 @@ class CustomImageDataset(Dataset):
         sampler:SubsetRandomSampler=None,  
         ) -> None:
 
-        self.img_dir = img_dir
         self.img_labels = img_labels
         self.images = images
         self.transform = transform
@@ -72,11 +70,11 @@ class CustomImageDataset(Dataset):
         Returns:
             _type_: _description_
         """
-        img_path = os.path.join(self.img_dir, self.images[idx])
+        img_path = self.images[idx]
         print(f"image path: {img_path}")
 
         image = read_image(img_path)
-        label = self.img_labels.iloc[idx]
+        label = self.img_labels[idx]
         print(f"label: {label}")
 
         if self.transform:
@@ -106,16 +104,17 @@ class ImageCollection():
         indices:list,
         transform:transforms,
         sampler:SubsetRandomSampler,
+        target_transform:transforms = None
         )->CustomImageDataset:
         
         images = [ self.images[x] for x in indices]
-        labels = [ self.img_labels[x] for x in indices] # TODO: I did not provide a label for each image
+        labels = [ self.img_labels[x] for x in indices]
         dataset = CustomImageDataset(
-            self.img_dir,
             images,
             labels,
             transform,
-            sampler,
+            target_transform,
+            sampler
             )
         return(dataset)
 
@@ -126,17 +125,19 @@ class ImageCollection():
         ) -> dict:
 
         train_indices = self.folder_indices['train']
-        indices = list(range(train_indices[0],train_indices[1]))
+        indices = list(range(train_indices[0],train_indices[1]+1))
         np.random.shuffle(indices)
         num_train = len(indices)
         split = int(np.floor(valid_size * num_train))
         train_idx, valid_idx = indices[split:], indices[:split]
         
-        train_sampler = SubsetRandomSampler(train_idx)
-        valid_sampler = SubsetRandomSampler(valid_idx)
+        # Samples elements randomly from a given list of indices, without replacement.
+        # Causes failure and not needed since I already randomize
+        #train_sampler = SubsetRandomSampler(train_idx)
+        #valid_sampler = SubsetRandomSampler(valid_idx)
 
-        train_dataset = self._generate_dataset(train_idx,transform, train_sampler)
-        validation_dataset = self._generate_dataset(valid_idx,transform, valid_sampler)
+        train_dataset = self._generate_dataset(train_idx,transform, None)
+        validation_dataset = self._generate_dataset(valid_idx,transform, None)
         result = {
             "train" : train_dataset,
             "validation" : validation_dataset
@@ -179,7 +180,8 @@ class ImageCollection():
                             images.append(path)
                             index = index + 1
                 self.folder_indices[folder] = (start_index, index-1)
-
+                print(f"Indicies for {folder} are: {self.folder_indices[folder]}")
+            
             self.images = images.copy()
             self.img_labels = labels.copy()
         else:
@@ -236,8 +238,6 @@ def test():
             transform=transforms.CenterCrop(size=300)
         )
     #test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
-
-    
 
     train_loader = DataLoader(
         data['train'],

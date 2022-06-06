@@ -24,9 +24,12 @@
 import os
 import re
 import argparse
+from PIL import Image
+from typing import Tuple
+
+# Data wrangling and visualization
 from matplotlib import transforms
 import numpy as np
-from typing import Tuple
 
 # Pytorch pacakges
 from torchvision.io import read_image
@@ -42,13 +45,14 @@ train partition = all image ids, but they should follow the label order.
 # Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 
 class CustomImageDataset(Dataset):
+    """Dataset stores the samples and their corresponding labels."""
     def __init__(
             self,
             images:list,
             img_labels:list, 
             transform:transforms=None,
             target_transform:transforms = None,
-            #sampler:SubsetRandomSampler=None,  
+            #sampler:SubsetRandomSampler=None,  # Why doesn't this work?
         ) -> None:
 
         self.img_labels = img_labels
@@ -98,6 +102,16 @@ class ImageCollection():
         # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
+
+    def verify_image(self,filename:str)->bool:
+        try:
+            img = Image.open(filename) # open the image file
+            img.verify() # verify that it is, in fact an image
+            img.close() #reload is necessary in my case
+            return(True)
+        except (IOError, SyntaxError) as e:
+            print('Bad file:', filename) # print out the names of corrupt files
+            return(False)
 
     def _generate_dataset(
         self,
@@ -175,9 +189,10 @@ class ImageCollection():
                         for file_name in files:
                             path=(os.path.join(root, file_name.replace(" ","\\ "))) #id
                             class_label = re.sub("[0-9][0-9].",'',os.path.basename(root))
-                            labels.append(class_label)
-                            images.append(path)
-                            index = index + 1
+                            if self.verify_image(path) == True:
+                                labels.append(class_label)
+                                images.append(path)
+                                index = index + 1
                 self.folder_indices[folder] = (start_index, index-1)
                 print(f"Indicies for {folder} are: {self.folder_indices[folder]}")
             
@@ -232,9 +247,29 @@ def test():
     valid_size = 0.2
 
     ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
+
+    # Desired Transform - Does not work.  Need to read docs
+    transform = transforms.Compose([
+        transforms.ToPILImage(), # This is needed for the ColorJitter
+        transforms.FiveCrop(size=(100,100)), # crops the given image into four corners and the central crop
+        transforms.ColorJitter(brightness=.5,hue=.3,contrast=.5,saturation=.2),
+        transforms.RandomRotation(degrees=(0,180)), #randomly rotate between 0 and 180 degrees
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    # Simplified transform - This works
+    transform_img = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+
     data = ic.generate_train_valid_dataset(
             valid_size = valid_size, 
-            transform=transforms.CenterCrop(size=300)
+            transform=transform_img
         )
     #test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
 

@@ -75,11 +75,9 @@ class CustomImageDataset(Dataset):
             _type_: _description_
         """
         img_path = self.images[idx]
-        print(f"image path: {img_path}")
 
         image = read_image(img_path)
         label = self.img_labels[idx]
-        print(f"label: {label}")
 
         if self.transform:
             image = self.transform(image)
@@ -103,7 +101,7 @@ class ImageCollection():
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
 
-    def verify_image(self,filename:str)->bool:
+    def verify_image(self, filename:str)->bool:
         try:
             img = Image.open(filename) # open the image file
             img.verify() # verify that it is, in fact an image

@@ -28,7 +28,6 @@ from PIL import Image
 from typing import Tuple
 
 # Data wrangling and visualization
-from matplotlib import transforms
 import numpy as np
 
 # Pytorch pacakges
@@ -37,6 +36,7 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 # from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
+from torch import stack
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
 train partition = all image ids, but they should follow the label order.
@@ -77,12 +77,16 @@ class CustomImageDataset(Dataset):
         img_path = self.images[idx]
 
         image = read_image(img_path)
+        print(f"Image Type: {type(image)}") # Tensor
         label = self.img_labels[idx]
 
-        if self.transform:
-            image = self.transform(image)
-        if self.target_transform:
-            label = self.target_transform(label)
+        if self.transform != None:
+            image = self.transform(image) #Failure
+        #if self.target_transform != None:
+        #    label = self.target_transform(label)
+        
+        #sample = {"image":image, "label":label}
+        #return sample
         return image, label
         
 class ImageCollection():
@@ -231,13 +235,13 @@ class ImageCollection():
         """Returens the range of indices for the particular folder sent in."""
         return(self.folder_indices[folder])
 
-def test():
+def test(use_five_crop:bool = True):
     """Used to test the class."""
     #parser = argparse.ArgumentParser()
     #parser.add_argument("--img_dir",required=True, help="directory path", type=str)
     #args = parser.parse_known_args()
     #cd = CustomImageDataset(args.img_dir)
-
+    transform = None
     num_workers = 0
     # how many samples per batch to load
     batch_size = 20 #64
@@ -246,31 +250,43 @@ def test():
 
     ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
 
-    # Desired Transform - Does not work.  Need to read docs
-    transform = transforms.Compose([
-        transforms.ToPILImage(), # This is needed for the ColorJitter
-        transforms.FiveCrop(size=(100,100)), # crops the given image into four corners and the central crop
-        transforms.ColorJitter(brightness=.5,hue=.3,contrast=.5,saturation=.2),
-        transforms.RandomRotation(degrees=(0,180)), #randomly rotate between 0 and 180 degrees
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
+    # REFERENCE: https://pytorch.org/vision/main/transforms.html#compositions-of-transforms
+    # REFERENCE: https://pytorch.org/vision/stable/generated/torchvision.transforms.FiveCrop.html
+    # Because FiveCrop creates a tuple with the 5 crops, you need to figure
+    # out a way to convert to a 4D tensor (width,height,color times 5), and how to parse each 
+    # image.
+    if use_five_crop:
+        mean=[0.5,0.5,0.5]
+        std=[0.5,0.5,0.5]
+        transform = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize(256),
+            transforms.ColorJitter(brightness=.5,hue=.3,contrast=.5,saturation=.2),
+            transforms.RandomRotation(degrees=(0,180)), #randomly rotate between 0 and 180 degrees
+            transforms.FiveCrop(size=(100,100)), # crops the given image into four corners and the central crop, returns a tuple
+            transforms.Lambda(lambda crops: stack([transforms.PILToTensor()(crop) for crop in crops])),
+            transforms.Lambda(lambda normal: stack([transforms.Normalize(mean, std)(normalize) for normalize in normal]))
 
-    # Simplified transform - This works
-    transform_img = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            #Below unpacks the FiveCrop line (266) above.  Just added normalization
+            #transforms.Lambda(lambda crops: [transforms.PILToTensor()(crop) for crop in crops]), #  applies a user-defined lambda as a transform.  Needed for FiveCrop
+            #transforms.Lambda(lambda crops: stack(crops)) #returns a 4D tensor [batch, feature_maps, width, height],
         ])
+    else:
+        # Simplified transform - This works
+        transform = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
 
     data = ic.generate_train_valid_dataset(
-            valid_size = valid_size, 
-            transform=transform_img
+            valid_size = valid_size,
+            transform=transform 
+            #transform=transform_img
         )
-    #test_data = ic.generate_test_dataset(transform=transforms.CenterCrop(300))
-
+    
     train_loader = DataLoader(
         data['train'],
         batch_size = batch_size,
@@ -278,10 +294,26 @@ def test():
     )
 
     # obtain one batch of training images
-    dataiter = iter(train_loader)
-    images, labels = dataiter.next()
-    images = images.numpy()
-    print(labels)
+    if use_five_crop:
+        # Have to do this method because I am using FiveCrop
+        # Reference: https://stackoverflow.com/questions/62827282/how-to-handle-transforms-fivecrop-change-in-tensor-size
+        for batch_idx, (data,target) in enumerate(train_loader):
+            batch_size, ncrops, colors, height, width = data.size() # ncrops = number of crops, which our situation is 5
+            print(f'Data: {data.view(-1, colors, height, width)}, Target: {target}')
+
+            # in the training process, you would put each cropped image in the model for training
+            # Then you would aggregate the the results for each of the 5 (i.e., ncrops) crops that made up
+            # the original image.
+            
+            # Early stopping of loop
+            if batch_idx > 1: 
+                break
+    else:
+        # No Data Augmentation (Adding more images vs. modifying images), so can use the simpler method
+        dataiter = iter(train_loader)
+        images, labels = dataiter.next()
+        images = images.numpy()
+        print(labels)
 
 if __name__ == "__main__":
     test()

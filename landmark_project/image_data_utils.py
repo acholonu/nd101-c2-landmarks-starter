@@ -31,6 +31,7 @@ from typing import Tuple
 import numpy as np
 
 # Pytorch pacakges
+import torch
 from torchvision.io import read_image
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
@@ -256,8 +257,8 @@ def test(use_five_crop:bool = True):
     # out a way to convert to a 4D tensor (width,height,color times 5), and how to parse each 
     # image.
     if use_five_crop:
-        mean=[0.5,0.5,0.5]
-        std=[0.5,0.5,0.5]
+        mean=(0.5,0.5,0.5)
+        std=(0.5,0.5,0.5)
         transform = transforms.Compose([
             transforms.ToPILImage(),
             transforms.Resize(256),
@@ -265,10 +266,13 @@ def test(use_five_crop:bool = True):
             transforms.RandomRotation(degrees=(0,180)), #randomly rotate between 0 and 180 degrees
             transforms.FiveCrop(size=(100,100)), # crops the given image into four corners and the central crop, returns a tuple
             transforms.Lambda(lambda crops: stack([transforms.PILToTensor()(crop) for crop in crops])),
-            transforms.Lambda(lambda normal: stack([transforms.Normalize(mean, std)(normalize) for normalize in normal]))
+            transforms.Lambda(lambda crops: stack([crop.type(torch.float) for crop in crops])),
+            transforms.Lambda(lambda crops: stack([transforms.Normalize(mean, std)(crop) for crop in crops])) #NOT WORKING
 
             #Below unpacks the FiveCrop line (266) above.  Just added normalization
             #transforms.Lambda(lambda crops: [transforms.PILToTensor()(crop) for crop in crops]), #  applies a user-defined lambda as a transform.  Needed for FiveCrop
+            #transforms.Lambda(lambda crops: [crop.type(torch.float) for crop in crops]),
+            #transforms.Lambda(lambda crops:[transforms.Normalize(mean, std)(crop) for crop in crops]), #THis is not working
             #transforms.Lambda(lambda crops: stack(crops)) #returns a 4D tensor [batch, feature_maps, width, height],
         ])
     else:
@@ -296,17 +300,33 @@ def test(use_five_crop:bool = True):
     # obtain one batch of training images
     if use_five_crop:
         # Have to do this method because I am using FiveCrop
+        # Reference: https://pytorch.org/vision/stable/generated/torchvision.transforms.FiveCrop.html
         # Reference: https://stackoverflow.com/questions/62827282/how-to-handle-transforms-fivecrop-change-in-tensor-size
         for batch_idx, (data,target) in enumerate(train_loader):
-            batch_size, ncrops, colors, height, width = data.size() # ncrops = number of crops, which our situation is 5
-            print(f'Data: {data.view(-1, colors, height, width)}, Target: {target}')
+            # ncrops = number of crops, which our situation is 5
+            batch_size, ncrops, colors, height, width = data.size() 
+            # Let's view the break down
+            print(f'Data: {data.view(-1, colors, height, width)}, Data Type: {data.dtype}')
 
             # in the training process, you would put each cropped image in the model for training
             # Then you would aggregate the the results for each of the 5 (i.e., ncrops) crops that made up
             # the original image.
+
+            # Looks like you can handle augmentation in two ways.
+            #   
+            # 1) Augment the dataset before doing the data loader
+            # transforming the dataset first and then put it the resulting augmentation into a dataset object.  
+            # And then the dataset object is passed into the data loader.
+            # SEE example: EXAMPLE 11 (https://www.programcreek.com/python/example/117701/torchvision.transforms.TenCrop)
+            # go to the bottom of the page.
+            #
+            # 2) Applying the transformation and then fusing everything back together after applying transformation
             
+            # NEXT STEPS plot the five crop before and after fusing together image for 1 image.  So I can understand
+            # what is happening
+
             # Early stopping of loop
-            if batch_idx > 1: 
+            if batch_idx > 1:
                 break
     else:
         # No Data Augmentation (Adding more images vs. modifying images), so can use the simpler method

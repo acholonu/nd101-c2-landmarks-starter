@@ -236,7 +236,7 @@ class ImageCollection():
         """Returens the range of indices for the particular folder sent in."""
         return(self.folder_indices[folder])
 
-def test(use_five_crop:bool = True):
+def test(use_five_crop:bool = False):
     """Used to test the class."""
     #parser = argparse.ArgumentParser()
     #parser.add_argument("--img_dir",required=True, help="directory path", type=str)
@@ -281,9 +281,11 @@ def test(use_five_crop:bool = True):
             transforms.ToPILImage(),
             transforms.Resize(256),
             transforms.CenterCrop(224),
+            transforms.ColorJitter(brightness=.5,hue=.3,contrast=.5,saturation=.2),
+            transforms.RandomRotation(degrees=180), #randomly rotate between 0 and 180 degrees
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-            ])
+        ])
 
     data = ic.generate_train_valid_dataset(
             valid_size = valid_size,

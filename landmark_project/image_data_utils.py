@@ -57,10 +57,14 @@ class CustomImageDataset(Dataset):
         ) -> None:
 
         self.img_labels = img_labels
+        self.target_labels = list(set(img_labels))
         self.images = images
         self.transform = transform
         self.target_transform = target_transform
         #self.sampler=sampler 
+
+    def num_outputs(self)->int:
+        return len(self.target_labels)
 
     def __len__(self)->int:
         """Returns the total number of images that are in the image directory."""
@@ -106,15 +110,40 @@ class ImageCollection():
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
 
-    def verify_image(self, filename:str)->bool:
+    def verify_image(self, filename:str, check_image_variance:bool = False)->bool:
+        """_summary_
+
+        Args:
+            filename (str): the image file to open
+            check_image_variance (bool, optional): Set to True if you want to check if images
+            has little to no variance in pixel values. So if the picture is all black verify_image would
+            return False for that image. Defaults to False.
+
+        Returns:
+            bool: Returns true if the image checks all pass.
+        """
         try:
             img = Image.open(filename) # open the image file
-            img.verify() # verify that it is, in fact an image
+            img.verify() # verify that it is, in fact an image without loading the image.  It errors if there is a probelem.
+            # check image has variance in data.
+            if check_image_variance:
+                result = self._validate_img_variance(img)
+                if result == False:
+                    print(f"No Pixel Variance for file: {filename}")
+                    return(False)
             img.close() #reload is necessary in my case
             return(True)
         except (IOError, SyntaxError) as e:
             print('Bad file:', filename) # print out the names of corrupt files
             return(False)
+
+    def _validate_img_variance(self, img:Image)->bool:
+        # measure of information complexity in the image. Range: 0 to 1, where zero means
+        # very little complexity (very uniform)
+        entropy = img.entropy()  
+        print(entropy)
+        # TODO: Not sure if I need this function.  Cool experimentation
+        return True
 
     def _generate_dataset(
         self,
@@ -282,15 +311,14 @@ def test(use_five_crop:bool = False):
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ColorJitter(brightness=.5,hue=.3,contrast=.5,saturation=.2),
-            transforms.RandomRotation(degrees=180), #randomly rotate between 0 and 180 degrees
+            transforms.RandomRotation(degrees=30), #randomly rotate between 0 and 180 degrees
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
 
     data = ic.generate_train_valid_dataset(
             valid_size = valid_size,
-            transform=transform 
-            #transform=transform_img
+            transform=transform
         )
     
     train_loader = DataLoader(

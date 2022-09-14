@@ -105,7 +105,7 @@ class ImageCollection():
         """Class constructor"""
         self.images:list = None
         self.img_labels:list = None
-        self.img_sizes:list = None
+        self.img_sizes:list = []
         self.img_dir:str = img_dir
         self.folders:list = folders
         # key is the folder name from self.folders, starting indices of images in that folder
@@ -146,7 +146,7 @@ class ImageCollection():
             img.close() #reload is necessary in my case
             return(True)
         except (IOError, SyntaxError) as e:
-            print('Bad file:', filename) # print out the names of corrupt files
+            print(f'Bad file: {filename}. Error: {e}') # print out the names of corrupt files
             return(False)
 
     def _validate_img_variance(self, img:Image)->bool:
@@ -386,6 +386,11 @@ def test(use_five_crop:bool = False):
         images, labels = dataiter.next()
         images = images.numpy()
         print(labels)
+
+    # Describe Image Sizes
+    df = ic.describe_img_sizes()
+    print(df)
+    print("done")
 
 if __name__ == "__main__":
     test()

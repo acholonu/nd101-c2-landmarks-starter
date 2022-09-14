@@ -121,6 +121,7 @@ class ImageCollection():
         self.img_dir:str = img_dir
         self.folders:list = folders
         self.min_img_size_limit = min_img_size_limit
+        self.num_img_filtered:int = 0
         # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
@@ -149,10 +150,12 @@ class ImageCollection():
                 width, height = img.size
                 if self.min_img_size_limit is not None:
                     if width < self.min_img_size_limit[0]:
-                        print(f"Image: {filename} width:{width} is less than limit:{self.min_img_size_limit[0]}.")
+                        print(f"Image: {filename} width:{width} is less than limit:{self.min_img_size_limit[0]}. Height:{height}")
+                        self.num_img_filtered = self.num_img_filtered +1
                         return(False)
                     elif height < self.min_img_size_limit[1]:
-                        print(f"Image: {filename} height:{height} is less than limit:{self.min_img_size_limit[1]}.")
+                        print(f"Image: {filename} Height:{height} is less than limit:{self.min_img_size_limit[1]}. Width:{width}.")
+                        self.num_img_filtered = self.num_img_filtered +1
                         return(False)
                 row = [filename, width, height]
                 self.img_sizes.append(row)
@@ -161,6 +164,7 @@ class ImageCollection():
                 result = self._validate_img_variance(img)
                 if result == False:
                     print(f"No Pixel Variance for file: {filename}")
+                    self.num_img_filtered = self.num_img_filtered +1
                     return(False)
             img.close() #reload is necessary in my case
             return(True)
@@ -306,6 +310,12 @@ class ImageCollection():
         if df is None: return(df)
         return(df.describe())
 
+    def get_number_filtered(self):
+        return(self.num_img_filtered)
+
+    def get_number_images(self):
+        return(len(self.images))
+
 def test(use_five_crop:bool = False):
     """Used to test the class."""
     #parser = argparse.ArgumentParser()
@@ -321,7 +331,7 @@ def test(use_five_crop:bool = False):
 
     ic = ImageCollection(
         "./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images",
-        min_img_size_limit=(256,256),
+        min_img_size_limit=(224,224),
         )
 
     # REFERENCE: https://pytorch.org/vision/main/transforms.html#compositions-of-transforms
@@ -413,7 +423,7 @@ def test(use_five_crop:bool = False):
     df = ic.describe_img_sizes()
     print(df)
     df.to_csv("describe_img_sizes.csv")
-    print("done")
+    print(f"Number Filtered: {ic.get_number_filtered()} Remaining images:{ic.get_number_images()}")
 
 if __name__ == "__main__":
     test()

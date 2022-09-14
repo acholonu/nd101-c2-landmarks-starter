@@ -99,24 +99,36 @@ class ImageCollection():
     def __init__(
         self, 
         img_dir:str, 
-        folders:list=['train','test']
+        folders:list=['train','test'],
+        save_img_size:bool = True,
+        min_img_size_limit:Tuple = None,
         ):
 
-        """Class constructor"""
+        """Class constructor.
+        
+            Args:
+                img_dir (str): the path to folder that holds all images
+                folders (str): Sub folders required in img_dir
+                save_img_size (bool, optional): If True, then store image sizes in data frame.  Defaults to True
+                min_img_size_limit (Tuple, optional): A Tuple that has the minium width and height for images. 
+                Images must pass both the width and height limits to be included in the dataset. Set value to None if you all
+                images to be include (no minimum limits on image size).  Defaults to None.
+        """
         self.images:list = None
         self.img_labels:list = None
+        self.save_img_size:bool = save_img_size
         self.img_sizes:list = []
         self.img_dir:str = img_dir
         self.folders:list = folders
+        self.min_img_size_limit = min_img_size_limit
         # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
 
     def verify_image(
-        self, 
-        filename:str, 
-        check_image_variance:bool = False,
-        save_img_size:bool = True
+            self, 
+            filename:str, 
+            check_image_variance:bool = False,
         )->bool:
         """_summary_
 
@@ -133,8 +145,15 @@ class ImageCollection():
             img = Image.open(filename) # open the image file
             img.verify() # verify that it is, in fact an image without loading the image.  It errors if there is a probelem.
             # check image has variance in data.
-            if save_img_size == True:
+            if self.save_img_size == True:
                 width, height = img.size
+                if self.min_img_size_limit is not None:
+                    if width < self.min_img_size_limit[0]:
+                        print(f"Image: {filename} width:{width} is less than limit:{self.min_img_size_limit[0]}.")
+                        return(False)
+                    elif height < self.min_img_size_limit[1]:
+                        print(f"Image: {filename} height:{height} is less than limit:{self.min_img_size_limit[1]}.")
+                        return(False)
                 row = [filename, width, height]
                 self.img_sizes.append(row)
 
@@ -300,7 +319,10 @@ def test(use_five_crop:bool = False):
     # percentage of training set to use as validation
     valid_size = 0.2
 
-    ic = ImageCollection("./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images")
+    ic = ImageCollection(
+        "./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images",
+        min_img_size_limit=(256,256),
+        )
 
     # REFERENCE: https://pytorch.org/vision/main/transforms.html#compositions-of-transforms
     # REFERENCE: https://pytorch.org/vision/stable/generated/torchvision.transforms.FiveCrop.html
@@ -390,6 +412,7 @@ def test(use_five_crop:bool = False):
     # Describe Image Sizes
     df = ic.describe_img_sizes()
     print(df)
+    df.to_csv("describe_img_sizes.csv")
     print("done")
 
 if __name__ == "__main__":

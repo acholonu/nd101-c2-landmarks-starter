@@ -37,6 +37,7 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 # from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
+from pandas import DataFrame
 from torch import stack
 
 """So I need to flatten the dataset.  for labels->dictionary key=image id, value = label, 
@@ -104,13 +105,19 @@ class ImageCollection():
         """Class constructor"""
         self.images:list = None
         self.img_labels:list = None
+        self.img_sizes:list = None
         self.img_dir:str = img_dir
         self.folders:list = folders
         # key is the folder name from self.folders, starting indices of images in that folder
         self.folder_indices = {}  
         self._generate_img_indices(img_dir)
 
-    def verify_image(self, filename:str, check_image_variance:bool = False)->bool:
+    def verify_image(
+        self, 
+        filename:str, 
+        check_image_variance:bool = False,
+        save_img_size:bool = True
+        )->bool:
         """_summary_
 
         Args:
@@ -126,6 +133,11 @@ class ImageCollection():
             img = Image.open(filename) # open the image file
             img.verify() # verify that it is, in fact an image without loading the image.  It errors if there is a probelem.
             # check image has variance in data.
+            if save_img_size == True:
+                width, height = img.size
+                row = [filename, width, height]
+                self.img_sizes.append(row)
+
             if check_image_variance:
                 result = self._validate_img_variance(img)
                 if result == False:
@@ -264,6 +276,16 @@ class ImageCollection():
     def get_folder_img_index_range(self, folder:str)->Tuple:
         """Returens the range of indices for the particular folder sent in."""
         return(self.folder_indices[folder])
+
+    def get_img_sizes(self)->DataFrame:
+        if self.img_sizes is None: return(self.img_sizes)
+        df = DataFrame(self.img_sizes, columns=['filename','width','height'])
+        return(df)
+
+    def describe_img_sizes(self)->DataFrame:
+        df = self.get_img_sizes()
+        if df is None: return(df)
+        return(df.describe())
 
 def test(use_five_crop:bool = False):
     """Used to test the class."""

@@ -18,6 +18,7 @@ landmark_images/
 data/*
 cifar-10-batches-py
 cifar-10-python.tar.gz
+server-parameters.json
 
 # VSCODE
 .vscode/

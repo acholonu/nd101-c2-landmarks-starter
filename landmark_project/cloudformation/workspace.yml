@@ -1,0 +1,209 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Ugochi Jones / Project 2
+  This cloud formation template deploys a VPC, with a single public subnet with one
+  Availability Zone.  It deploys an Internet Gateway, with a default route on the public subnet.
+  Incoming traffic (ingress) is only coming through SSH from my person IP. It allows all out
+  going traffic.  
+
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+  
+  VpcCIDR:
+    Description: > 
+      The IP range (CIDR notation) for this VPC.  So every IP address in this VPC
+      will start with the first 16 bits with 10.0.
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnetCIDR:
+    Description: >
+      Defines the IP ranges that exist in this public subnet (public subnet1). Every IP address in this subnet will
+      start with 10.0.0. This public subnet will be in the first Availability Zone.
+    Type: String
+    Default: 10.0.0.0/24
+
+  GPUInstanceTypeParameter:
+    Description: > 
+      Defines the GPU family of EC2 instance to be used for the remote connection.
+    Type: String
+    Default: g4ad.4xLarge
+    AllowedValues: 
+      - "g4ad.4xLarge" 
+      - "t3.medium" 
+      - "m1.small" 
+      - "m1.large"
+
+  GPUKeyNameParameter:
+    Description: >
+      Name of the SSH key to be used to ssh into the EC2 instance.
+    Type: String
+    Default: udacity-project2
+
+  PersonalIPParameter:
+    Description: >
+      The ip addresses that able to SSH into the EC2 instance.
+    Type: String
+  
+  AMIImageParameter:
+    Description: >
+      OS image to install on EC2 Instance.
+    Type: String
+    Default: ami-02f3416038bdb17fb
+    AllowedValues:
+      - ami-02f3416038bdb17fb #Ubuntu Server 22.04 LTS (HVM), SSD Volume Type (Just OS)
+      - ami-046fbfc7e87daafda # Community Image, https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#AMICatalog:
+
+Resources:
+  # defining our Virtual Private cloud
+  # Using the parameters to define the CIDR range in our VPC
+  VPC: # Name of VPC is VCP
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-Vpc
+        - Key: Course
+          Value: Deep Learning
+        - Key: Project
+          Value: Udacity Project 2 - Landmark
+        - Key: Author
+          Value: Ugochi Jones
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      # Selected the first element in GetAZs list.
+      AvailabilityZone: us-east-2a # Ohio availability zone A
+      CidrBlock: !Ref PublicSubnetCIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+
+# Add internet access
+  # Setting up an internet gateway so our VPC can have internet access
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName 
+
+  # InternetGatewayAttachment, attaches a gateway to a particular VPC
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      # The Reference here is NOT referencing a parameter
+      # Instead it is referencing the name of the resource that has been created
+      # in this file.  So there is a resource named VPC
+      # So !REF can reference a parameter or resource
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  PersonalSSHSecGroup:
+    # Security groups are linked to a resource (e.g., Servers, databases, or Load Balancers)
+    Type: AWS::EC2::SecurityGroup
+    #DeletionPolicy: Retain
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22 # This is port for SSH
+          ToPort: 22
+          #CidrIp: 0.0.0.0/0 # Wild card for testing 
+          CidrIp: PersonalIPParameter #My personal 
+  
+  GPUInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: PersonalSSHSecGroup
+    Properties:
+      InstanceType: GPUInstanceTypeParameter
+      ImageId: AMIImageParameter
+      KeyName: GPUKeyNameParameter
+      SecurityGroups:
+        - !Ref PersonalSSHSecGroup
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: "0"
+          #GroupSet: 
+          #  - Ref: "PersonalSSHSecGroup"
+          SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: "Name"
+          Value: "UJ_GPU_Instance"
+        - Key: "Course"
+          Value: "Deep Learning"
+        - Key: "Project"
+          Value: "Udacity Project 2 - Landmarks Project"
+# The purpose of the output section is to create variables connected to the resources
+# you created in this cloudformation script.  Then other cloudformation scripts can
+# refer to these variables to interact within their scripts.
+# This allows you to compartmentalize scripts (Networking, Storage, Servers)
+# Outputs are totally OPTIONAL.  But they are helpful if you want to 1) import into
+# another stack, 2) return in a response, 3) view in the AWS console.
+# These are GLOBAL VARIABLES!!!!  So they need to be unique throughout the account.
+
+Outputs:
+  VPC:
+    Description: A reference to the created VPC
+    Value: !Ref VPC
+    Export:
+      # EnvironmentName is a parameter we defined.
+      Name: !Sub ${EnvironmentName}-VPCID
+
+  # TO DO: Not sure if this is going to work
+  VpcCIDR:
+    Description: A reference to the Cidr range for ${EnvironmentName}-VPCID
+    Value: !Ref VpcCIDR
+    Export:
+      # EnvironmentName is a parameter we defined.
+      Name: !Sub ${EnvironmentName}-VpcCIDR
+
+  VPCPublicRouteTable:
+        Description: Public Routing
+        Value: !Ref PublicRouteTable
+        Export:
+          # Sub Returns the PublicRouteTable ID concatenated with `-PUB-RT`
+          Name: !Sub ${EnvironmentName}-PUB-RT
+
+  VPCPublicSubnet:
+      Description: A reference to the public subnet in the 1st Availability Zone
+      Value: !Ref PublicSubnet
+      Export:
+        Name: !Sub ${EnvironmentName}-PUB-SN
+
+  EC2Instance: 
+      Description: The name and type of the EC2 Instance created.
+      Value: !Ref GPUInstance
+      Export:
+        Name: !Sub ${EnvironmentName}-EC2-Instance

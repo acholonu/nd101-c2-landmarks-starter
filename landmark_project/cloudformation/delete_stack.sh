@@ -1,0 +1,1 @@
+aws cloudformation delete-stack --profile=udacity_devops --stack-name $1 --region=us-east-2

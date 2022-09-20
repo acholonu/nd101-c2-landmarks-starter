@@ -163,19 +163,24 @@ Resources:
   # Python 3.10.4 already installed on Ubuntu, so I am also assuming pip3 is installed
   # Release notes: https://discourse.ubuntu.com/t/jammy-jellyfish-release-notes/24668?_ga=2.185082281.102253668.1663666965-1685001298.1663666965
   # Reference: https://community.f5.com/t5/technical-articles/aws-cloudformation-ec2-userdata-example-to-install-nginx-plus-on/ta-p/285566
+  # The pipe (aka. |) in YAML means preserve the newline for the multiline string. The carot (aka. >), means convert newlines(\n)
+  # to spaces in a multiline string. 
   GPUInstance:
     Type: AWS::EC2::Instance
     DependsOn: PersonalSSHSecGroup
     Properties:
       UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          apt-get update -y
-          sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          sudo apt install unzip
-          sudo unzip awscliv2.zip
-          sudo ./aws/install
-          sudo pip3 install pandas matplotlib jupyter torch torchvision torchaudio pyyaml joblib scikit-learn scipy
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            apt-get update -y
+            sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            sudo apt install unzip
+            sudo unzip awscliv2.zip
+            sudo ./aws/install
+            sudu curl "https://udacity-dlnfd.s3-us-west-1.amazonaws.com/datasets/landmark_images.zip"
+            sudo unzip landmark_images.zip
+            sudo pip3 install numpy torch torchvision cv2 PIL pandas matplotlib jupyter pyyaml joblib scikit-learn scipy
       InstanceType: GPUInstanceTypeParameter
       ImageId: AMIImageParameter
       KeyName: SSHKeyNameParameter
@@ -195,7 +200,7 @@ Resources:
         - Key: "Project"
           Value: "Udacity Project 2 - Landmarks Project"
         - Key: "EC2 Setup"
-          Value: "Ubuntu 22.04 LTS, SSD Volume, Python 3 and pip, with pytorch, jupyter"
+          Value: "Ubuntu 22.04 LTS, SSD Volume, with python packages pytorch, jupyter, pandas, numpy, joblib, scikit-learn, scipy, PIL, pyyaml, cv2"
 
 # The purpose of the output section is to create variables connected to the resources
 # you created in this cloudformation script.  Then other cloudformation scripts can

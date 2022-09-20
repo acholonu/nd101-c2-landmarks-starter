@@ -13,3 +13,22 @@ To successfully run this project, I need to use a machine with Graphic Processin
 - **Subnets**: One large public subnet. I do not need to parcel out the ip's because I am running 1 specific job.
 - **Security Group**: Ingress (incoming traffic) only from my IP through SSH.  Egress (outcoming traffic): All traffic.
 - **AMI Image**:  I will pick an Amazon Linux Image already preloaded with python and other machine learning essentials. I may need need to create a requirements.txt file, and use ansible to install the image.
+
+### Files
+
+- **create_stack.sh**: Bash script to run to create AWS stack defined in ml_workspace.yml. Arguments to pass:
+  - Stack Name: the name of the stack
+  - CloudFormation file: name of the cloudformation file
+  - Parameters File: the name of the parameter file
+- **delete_stack.sh**: Bash script to delete a specific AWS stack.
+- **ml_workspace.yml**: CloudFormation code that defines that networking and EC2 instance I need to handle the deep learning workflow. Infrastructure as code (IaC). Really just need a cheap GPU-enabled EC2 instance.
+
+### Minor Steps
+
+You must make sure create_stack.sh and delete_stack.sh are executables. To make these files executable, use the following commands:
+
+```bash
+
+chmod +x create_stack.sh
+chmod +x delete_stack.sh
+```

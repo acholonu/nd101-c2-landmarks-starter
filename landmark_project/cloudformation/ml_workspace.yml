@@ -1,9 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  Ugochi Jones / Project 2
   This cloud formation template deploys a VPC, with a single public subnet with one
   Availability Zone.  It deploys an Internet Gateway, with a default route on the public subnet.
-  Incoming traffic (ingress) is only coming through SSH from my person IP. It allows all out
+  Incoming traffic (ingress) is only coming through SSH and HTTP from my person IP. It allows all out
   going traffic.  
 
 Parameters:
@@ -33,11 +32,10 @@ Parameters:
     Description: > 
       Defines the GPU family of EC2 instance to be used for the remote connection.
     Type: String
-    Default: g4ad.4xLarge
     AllowedValues: 
-      - "g4ad.4xLarge" 
-      - "g4ad.2xLarge" 
-      - "g4ad.xLarge" 
+      - "g4ad.4xlarge" 
+      - "g4ad.2xlarge" 
+      - "g4ad.xlarge" 
       - "g2.2xlarge"
     ConstraintDescription: Must be a valid EC2 GPU-enabled (& cheap) instance type.
 
@@ -51,7 +49,6 @@ Parameters:
     Description: >
       The ip addresses that able to SSH into the EC2 instance.
     Type: String
-    Default: 0.0.0.0/0
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   
@@ -189,13 +186,13 @@ Resources:
       AvailabilityZone: us-east-2a
       ImageId: !Ref AMIImageParameter
       KeyName: !Ref SSHKeyNameParameter
-      SecurityGroups:
-        - !Ref PersonalSSHSecGroup
+      #SecurityGroups:
+      #  - !Ref PersonalSSHSecGroup
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
           DeviceIndex: "0"
-          #GroupSet: 
-          #  - Ref: "PersonalSSHSecGroup"
+          GroupSet:
+            - !Ref PersonalSSHSecGroup 
           SubnetId: !Ref PublicSubnet
       Tags:
         - Key: "Name"

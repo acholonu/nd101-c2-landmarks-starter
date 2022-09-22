@@ -32,7 +32,7 @@ Parameters:
     Description: > 
       Defines the GPU family of EC2 instance to be used for the remote connection.
     Type: String
-    AllowedValues: 
+    AllowedValues:
       - "g4ad.4xlarge" 
       - "g4ad.2xlarge" 
       - "g4ad.xlarge" 
@@ -174,14 +174,14 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash
-            apt-get update -y
-            sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            sudo apt install unzip
-            sudo unzip awscliv2.zip
-            sudo ./aws/install
-            sudu curl "https://udacity-dlnfd.s3-us-west-1.amazonaws.com/datasets/landmark_images.zip"
+            sudo apt-get update -y
+            sudo apt install python3-pip -y
+            sudo apt install unzip -y
+            sudo apt install git -y
+            sudo pip install numpy pandas matplotlib jupyter pyyaml joblib scikit-learn scipy opencv-python torch torchvision
+            sudo /usr/sbin/useradd ugochi
+            sudo curl "https://udacity-dlnfd.s3-us-west-1.amazonaws.com/datasets/landmark_images.zip" -o "landmark_images.zip"
             sudo unzip landmark_images.zip
-            sudo pip3 install numpy torch torchvision cv2 PIL pandas matplotlib jupyter pyyaml joblib scikit-learn scipy
       InstanceType: !Ref GPUInstanceTypeParameter
       AvailabilityZone: us-east-2a
       ImageId: !Ref AMIImageParameter

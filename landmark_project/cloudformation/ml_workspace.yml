@@ -194,6 +194,10 @@ Resources:
             mkdir references
             cd references
             aws s3 sync s3://uj-scratch/udacity/references .
+            cd ..
+            mkdir images
+            aws s3 sync s3://uj-scratch/udacity/images .
+            rm landmark_images.zip
             la
 
       InstanceType: !Ref GPUInstanceTypeParameter

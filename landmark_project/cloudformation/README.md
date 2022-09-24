@@ -36,5 +36,7 @@ chmod +x delete_stack.sh
 ## References
 
 - [EC2 Instance Types](https://aws.amazon.com/ec2/instance-types/?trk=36c6da98-7b20-48fa-8225-4784bced9843&sc_channel=ps&s_kwcid=AL!4422!3!536392622533!e!!g!!aws%20ec2%20instance&ef_id=Cj0KCQjw7KqZBhCBARIsAI-fTKIeewxIXSK3iLKo5PZrmg2uFQPeBdC5pThj4Aw52x5SRJA2uRFXm2EaArW4EALw_wcB:G:s&s_kwcid=AL!4422!3!536392622533!e!!g!!aws%20ec2%20instance)
-- [Using VSCode to connect remotely](https://medium.com/@christyjacob4/using-vscode-remotely-on-an-ec2-instance-7822c4032cff)
+- [Using VSCode to connect remotely - Medium Article](https://medium.com/@christyjacob4/using-vscode-remotely-on-an-ec2-instance-7822c4032cff)
 - [How to configure git on Ubuntu](https://linuxhint.com/install-configure-git-ubuntu/)
+- [Remote Connection with SSH - Microsoft Article](https://code.visualstudio.com/docs/remote/ssh)
+- [Linux Temp Folders](https://www.fosslinux.com/41739/linux-tmp-directory-everything-you-need-to-know.htm#:~:text=The%20%2Ftmp%20directory%20in%20Linux,applications%20running%20on%20the%20machine.&text=For%20example%2C%20when%20you%20are,file%20inside%20the%20%2Ftmp%20directory.)

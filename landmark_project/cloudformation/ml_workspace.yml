@@ -33,10 +33,12 @@ Parameters:
       Defines the GPU family of EC2 instance to be used for the remote connection.
     Type: String
     AllowedValues:
+      - "t3.medium" # For testing scripts.  Not a GPU
       - "g4ad.4xlarge" 
       - "g4ad.2xlarge" 
       - "g4ad.xlarge" 
       - "g2.2xlarge"
+    Default: "t3.medium"
     ConstraintDescription: Must be a valid EC2 GPU-enabled (& cheap) instance type.
 
   SSHKeyNameParameter:
@@ -174,6 +176,7 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash
+            #cloud-boothook
             sudo apt-get update -y
             sudo apt install python3-pip -y
             sudo apt install unzip -y

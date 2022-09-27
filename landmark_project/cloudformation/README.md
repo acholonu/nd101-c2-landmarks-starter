@@ -40,3 +40,5 @@ chmod +x delete_stack.sh
 - [How to configure git on Ubuntu](https://linuxhint.com/install-configure-git-ubuntu/)
 - [Remote Connection with SSH - Microsoft Article](https://code.visualstudio.com/docs/remote/ssh)
 - [Linux Temp Folders](https://www.fosslinux.com/41739/linux-tmp-directory-everything-you-need-to-know.htm#:~:text=The%20%2Ftmp%20directory%20in%20Linux,applications%20running%20on%20the%20machine.&text=For%20example%2C%20when%20you%20are,file%20inside%20the%20%2Ftmp%20directory.)
+- [Bash Scripting](https://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html)
+- [Install pyenv on ubuntu](https://linuxpip.org/pyenv-ubuntu/)

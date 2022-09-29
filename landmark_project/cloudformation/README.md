@@ -42,3 +42,14 @@ chmod +x delete_stack.sh
 - [Linux Temp Folders](https://www.fosslinux.com/41739/linux-tmp-directory-everything-you-need-to-know.htm#:~:text=The%20%2Ftmp%20directory%20in%20Linux,applications%20running%20on%20the%20machine.&text=For%20example%2C%20when%20you%20are,file%20inside%20the%20%2Ftmp%20directory.)
 - [Bash Scripting](https://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html)
 - [Install pyenv on ubuntu](https://linuxpip.org/pyenv-ubuntu/)
+- [Bashrc and pyenv](https://www.liquidweb.com/kb/how-to-install-pyenv-on-ubuntu-18-04/)
+- [Create venv](https://www.dataquest.io/blog/a-complete-guide-to-python-virtual-environments/)
+- [Install Docker on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+- [Install Pytorch on AMD GPU](https://docs.amd.com/bundle/ROCm-Deep-learning-Guide_5.2/page/Frameworks_Installation.html)
+- [Docker No Space Error Fix](cloudlinuxtech.com/fix-docker-no-space-left-on-device-error)
+
+### Linux Commands
+
+- memory check: `df -h`
+- memory check of a path: `sudo du -sh /var/lib/docker`
+- list hardware: `lshw`

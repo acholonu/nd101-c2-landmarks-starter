@@ -20,7 +20,10 @@ cifar-10-batches-py
 cifar-10-python.tar.gz
 server-parameters.json
 ml_workspace-parameters.json
+
+# SSH Keys
 *.pem
+*.cer
 
 # VSCODE
 .vscode/

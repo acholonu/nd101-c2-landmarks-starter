@@ -34,7 +34,8 @@ Parameters:
     Type: String
     AllowedValues:
       - "t3.medium" # For testing scripts.  Not a GPU
-      - "g4dn.xlarge" 
+      - "g4dn.xlarge"
+      - "g4dn.2xlarge" 
     Default: "t3.medium"
     ConstraintDescription: Must be a valid EC2 GPU-enabled (& cheap) instance type.
 

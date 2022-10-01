@@ -8,11 +8,12 @@ To successfully run this project, I need to use a machine with Graphic Processin
 
 ### Characteristics
 
-- **EC2 Instance Type**: g4ad.4xlarge
+- **EC2 Instance Type**: g4dn.xlarge
 - **Replication**: None.  I don't need fault tolerant because this is just used for running the associated notebook. It is not serving an application.  So when I am done, I will just throw everything away.
 - **Subnets**: One large public subnet. I do not need to parcel out the ip's because I am running 1 specific job.
 - **Security Group**: Ingress (incoming traffic) only from my IP through SSH.  Egress (outcoming traffic): All traffic.
-- **AMI Image**:  I will pick an Amazon Linux Image already preloaded with python and other machine learning essentials. I may need need to create a requirements.txt file, and use ansible to install the image.
+- **S3 Bucket**: To load my juypter notebook and supporting image files to the EC2 instance. See the `ec2-setup.sh` script to see how I set everything up.
+- **AMI Image**:  I will pick an ami (`ami-004cebb118c02866e`), that has Ubuntu 20.04 and already preloaded with Docker pytorch installment. This ami expects an NVidia graphic card (since the ami is created by NVidia).
 
 ### Files
 
@@ -28,7 +29,6 @@ To successfully run this project, I need to use a machine with Graphic Processin
 You must make sure create_stack.sh and delete_stack.sh are executables. To make these files executable, use the following commands:
 
 ```bash
-
 chmod +x create_stack.sh
 chmod +x delete_stack.sh
 ```

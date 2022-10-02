@@ -47,6 +47,7 @@ chmod +x delete_stack.sh
 - [Install Docker on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 - [Install Pytorch on AMD GPU](https://docs.amd.com/bundle/ROCm-Deep-learning-Guide_5.2/page/Frameworks_Installation.html)
 - [Docker No Space Error Fix](cloudlinuxtech.com/fix-docker-no-space-left-on-device-error)
+- [Running multiple commands on online in bash, with conditions](https://dev.to/0xbf/run-multiple-commands-in-one-line-with-and-linux-tips-5hgm)
 
 ### Linux Commands
 

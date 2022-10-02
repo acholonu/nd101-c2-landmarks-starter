@@ -44,6 +44,11 @@ from torch import stack
 train partition = all image ids, but they should follow the label order.
 """
 
+######CHANGE NEEDED
+""" I need to one-hot encode target labels.  Right now the values are string.  But Neural networks do not understand
+strings.  This will help me fix an error that I am running into.
+"""
+
 # Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 
 class CustomImageDataset(Dataset):

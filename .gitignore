@@ -28,3 +28,6 @@ ml_workspace-parameters.json
 # VSCODE
 .vscode/
 *.code-workspace
+
+# Don't ignrore
+!aws_stack_project2.png

@@ -4,7 +4,7 @@ To successfully run this project, I need to use a machine with Graphic Processin
 
 ## Stack Design
 
-*INSERT LUCIDCHART IMAGE*
+![AWS Stack Diagram](./aws_stack_project2.png)
 
 ### Characteristics
 
@@ -51,6 +51,8 @@ chmod +x delete_stack.sh
 
 ### Linux Commands
 
-- memory check: `df -h`
+- memory check and disk utilization: `df -h`
 - memory check of a path: `sudo du -sh /var/lib/docker`
 - list hardware: `lshw`
+- memory utilization `free -h`
+- check the top processes that are using the CPU: `top`

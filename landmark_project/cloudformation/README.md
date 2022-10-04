@@ -49,7 +49,7 @@ chmod +x delete_stack.sh
 - [Docker No Space Error Fix](cloudlinuxtech.com/fix-docker-no-space-left-on-device-error)
 - [Running multiple commands on online in bash, with conditions](https://dev.to/0xbf/run-multiple-commands-in-one-line-with-and-linux-tips-5hgm)
 
-### Linux Commands
+### Ubuntu Linux Commands
 
 - memory check and disk utilization: `df -h`
 - memory check of a path: `sudo du -sh /var/lib/docker`

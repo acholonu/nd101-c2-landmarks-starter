@@ -63,7 +63,7 @@ class CustomImageDataset(Dataset):
         ) -> None:
 
         self.img_labels = img_labels
-        self.target_labels = list(set(img_labels))
+        self.target_labels = list(set(img_labels)) #Noting the indicies will be important
         self.images = images
         self.transform = transform
         self.target_transform = target_transform

@@ -48,6 +48,7 @@ chmod +x delete_stack.sh
 - [Install Pytorch on AMD GPU](https://docs.amd.com/bundle/ROCm-Deep-learning-Guide_5.2/page/Frameworks_Installation.html)
 - [Docker No Space Error Fix](cloudlinuxtech.com/fix-docker-no-space-left-on-device-error)
 - [Running multiple commands on online in bash, with conditions](https://dev.to/0xbf/run-multiple-commands-in-one-line-with-and-linux-tips-5hgm)
+- [One Hot Encoding in Pytorch](https://sparrow.dev/pytorch-one-hot-encoding/) : Basically you encode the indices.  See example in link.
 
 ### Ubuntu Linux Commands
 

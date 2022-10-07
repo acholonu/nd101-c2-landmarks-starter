@@ -29,7 +29,8 @@ class Layer(object):
 
         # Outputs of Layer
         self.dim:Tuple[int] = None
-        self.num_weights:int
+        self.num_weights:int = None
+        self.num_parameters:int = None
 
         if isinstance(input_dim,int):
             self.input_dim = (input_dim,input_dim)
@@ -40,6 +41,10 @@ class Layer(object):
 
     # Test case: use quiz results
     def determine_padding(self)->int:
+        """Determine padding need based on filter size and image size
+
+        TODO: I need to make sure that I test the calculation below
+        """
         recommended_padding = self.dim[0]%self.filter_size
         return(recommended_padding)
 
@@ -99,11 +104,23 @@ class Layer(object):
 class NetSimulate(object):
     def __init__(self) -> None:
         """Constructor"""
-        self.layers = {}
+        self.layers = []
 
     def add_layer(self, layer:Layer):
         # Check if layer by that name has already been added
-        self.layers[layer.name] = layer
+        self.layers.append(layer)
+
+    def print_summary(self)->pd.DataFrame:
+        summary_layers = []
+
+        for layer in self.layers:
+            result = layer.get_layer_output()
+            row = [result['shape'],result['num_weights'],result['num_parameters']]
+            summary_layers.append(row)
+
+        df = pd.DataFrame(summary_layers, columns=["dimension","num_weights","num_parameters"])
+        print(df)
+        return(df)
 
 def summary():
     print("testing")

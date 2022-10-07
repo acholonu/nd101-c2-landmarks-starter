@@ -56,6 +56,7 @@ class Layer(object):
         else:
             width = self.input_dim[0]/self.filter_size[0]
             height = self.input_dim[1]/self.filter_size[1]
+            
         result = (width,height,depth)
         return(result)
 

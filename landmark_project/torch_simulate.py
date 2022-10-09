@@ -21,7 +21,7 @@ class Layer(object):
 
         # Inputs into the Layer
         self.input_depth = input_depth
-        self.input_dim = None
+        self.input_dim = input_dim
         self.stride = stride
         self.padding = padding
         self.filter_size = filter_size
@@ -34,7 +34,7 @@ class Layer(object):
 
         if isinstance(input_dim,int):
             self.input_dim = (input_dim,input_dim)
-        elif isinstance(input_dim,Tuple[int]):
+        elif isinstance(input_dim,Tuple):
             self.input_layer_dim  = input_dim
         else:
             ValueError("Layer dimension must be an int or Tuple")
@@ -89,7 +89,11 @@ class Layer(object):
         if self.is_conv_layer == False:
             return None
         bias = self.num_filters
-        self.num_parameters = bias + self.calc_num_parameters()
+        if self.num_weights is None:
+            self.num_parameters = bias + self.calc_num_weights()
+        else:
+            self.num_parameters = bias + self.num_weights
+
         return(self.num_parameters)
 
     def get_layer_output(self)->dict:
@@ -98,6 +102,10 @@ class Layer(object):
         if self.is_conv_layer:
             results['num_weights'] = self.calc_num_weights() 
             results['num_parameters'] = self.calc_num_parameters() # num_weight + Bias terms
+        else:
+            results['num_weights'] = None 
+            results['num_parameters'] = None
+            
         return(results)
 
 
@@ -124,6 +132,70 @@ class NetSimulate(object):
 
 def summary():
     print("testing")
+    conv1 = Layer(
+            layer_name="conv1",
+            input_depth = 3,
+            filter_size = (3,3),
+            input_dim = (256,256),
+            requested_num_filters = 16,
+            stride = 1,
+            padding = 1,
+            is_conv_layer= True,
+        )
+
+    conv2 = Layer(
+            layer_name="conv2",
+            input_depth = 16,
+            filter_size = (3,3),
+            input_dim = (256,256),
+            requested_num_filters = 32,
+            stride = 1,
+            padding = 1,
+            is_conv_layer= True,
+        )
+
+    max1 = Layer(
+            layer_name="max1",
+            input_depth = 32,
+            filter_size = (2,2),
+            input_dim = (256,256),
+            requested_num_filters = 0,
+            stride = 2,
+            padding = 0,
+            is_conv_layer= False,
+        )
+
+    conv3 = Layer(
+            layer_name="conv3",
+            input_depth = 32,
+            filter_size = (3,3),
+            input_dim = (128,128),
+            requested_num_filters = 64,
+            stride = 1,
+            padding = 1,
+            is_conv_layer= True,
+        )
+
+    max2 = Layer(
+            layer_name="max2",
+            input_depth = 64,
+            filter_size = (2,2),
+            input_dim = (256,256),
+            requested_num_filters = 0,
+            stride = 2,
+            padding = 0,
+            is_conv_layer= False,
+        )
+
+    model = NetSimulate()
+    model.add_layer(conv1)
+    model.add_layer(conv2)
+    model.add_layer(max1)
+    model.add_layer(conv3)
+    model.add_layer(max2)
+    df = model.print_summary()
+    df.head()
+
 
 if __name__ == "__main__":
     summary()

@@ -44,11 +44,6 @@ from torch import stack
 train partition = all image ids, but they should follow the label order.
 """
 
-######CHANGE NEEDED
-""" I need to one-hot encode target labels.  Right now the values are string.  But Neural networks do not understand
-strings.  This will help me fix an error that I am running into.
-"""
-
 # Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 
 class CustomImageDataset(Dataset):
@@ -63,7 +58,7 @@ class CustomImageDataset(Dataset):
         ) -> None:
 
         self.img_labels = img_labels
-        self.target_labels = list(set(img_labels)) #Noting the indicies will be important
+        self.target_labels = list(set(img_labels))
         self.images = images
         self.transform = transform
         self.target_transform = target_transform
@@ -88,7 +83,7 @@ class CustomImageDataset(Dataset):
         img_path = self.images[idx]
 
         image = read_image(img_path)
-        print(f"Image Type: {type(image)}") # Tensor
+        #print(f"Image Type: {type(image)}") # Tensor
         label = self.img_labels[idx]
 
         if self.transform != None:
@@ -155,11 +150,11 @@ class ImageCollection():
                 width, height = img.size
                 if self.min_img_size_limit is not None:
                     if width < self.min_img_size_limit[0]:
-                        print(f"Image: {filename} width:{width} is less than limit:{self.min_img_size_limit[0]}. Height:{height}")
+                        #print(f"Image: {filename} width:{width} is less than limit:{self.min_img_size_limit[0]}. Height:{height}")
                         self.num_img_filtered = self.num_img_filtered +1
                         return(False)
                     elif height < self.min_img_size_limit[1]:
-                        print(f"Image: {filename} Height:{height} is less than limit:{self.min_img_size_limit[1]}. Width:{width}.")
+                        #print(f"Image: {filename} Height:{height} is less than limit:{self.min_img_size_limit[1]}. Width:{width}.")
                         self.num_img_filtered = self.num_img_filtered +1
                         return(False)
                 row = [filename, width, height]

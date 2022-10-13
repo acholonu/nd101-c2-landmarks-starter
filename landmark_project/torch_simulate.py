@@ -61,6 +61,7 @@ class Layer(object):
         else:
             width = self.input_dim[0]/self.filter_size[0]
             height = self.input_dim[1]/self.filter_size[1]
+            depth = self.input_depth
             
         result = (width,height,depth)
         return(result)
@@ -98,6 +99,7 @@ class Layer(object):
 
     def get_layer_output(self)->dict:
         results = {}
+        results['name'] = self.name
         results['shape'] = self.calc_layer_shape()
         if self.is_conv_layer:
             results['num_weights'] = self.calc_num_weights() 
@@ -123,10 +125,10 @@ class NetSimulate(object):
 
         for layer in self.layers:
             result = layer.get_layer_output()
-            row = [result['shape'],result['num_weights'],result['num_parameters']]
+            row = [result['name'],result['shape'],result['num_weights'],result['num_parameters']]
             summary_layers.append(row)
 
-        df = pd.DataFrame(summary_layers, columns=["dimension","num_weights","num_parameters"])
+        df = pd.DataFrame(summary_layers, columns=['layer_name',"dimension","num_weights","num_parameters"])
         print(df)
         return(df)
 
@@ -180,7 +182,7 @@ def summary():
             layer_name="max2",
             input_depth = 64,
             filter_size = (2,2),
-            input_dim = (256,256),
+            input_dim = (128,128),
             requested_num_filters = 0,
             stride = 2,
             padding = 0,

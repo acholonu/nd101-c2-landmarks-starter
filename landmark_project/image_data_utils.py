@@ -267,7 +267,7 @@ class ImageCollection():
             self.images = images.copy()
             self.img_labels = labels.copy()
         else:
-            raise Exception("Unable to locate images and labels")
+            raise Exception(f"Unable to locate images and labels. Img_dir: {img_dir}")
         return images, labels
 
       

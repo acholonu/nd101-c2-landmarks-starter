@@ -102,7 +102,7 @@ class Net(nn.Module):
 
 
 def create_datasets(img_dir, min_img_size_limit=(256,256))->dict:
-    ic = ImageCollection(img_dir, min_img_size_limit))
+    ic = ImageCollection(img_dir, min_img_size_limit=min_img_size_limit)
     print(f"Number Filtered: {ic.get_number_filtered()} Remaining images:{ic.get_number_images()}")
     
     df = ic.describe_img_sizes()
@@ -117,7 +117,7 @@ def create_datasets(img_dir, min_img_size_limit=(256,256))->dict:
     
     data ={
         "train":dataset["train"],
-        "valid":dataset["valid"],
+        "valid":dataset["validation"],
         "test":test_data
     }
     return data
@@ -139,7 +139,7 @@ def create_dataloaders(
     )
 
     valid_loader = torch.utils.data.DataLoader(
-        data['validation'],
+        data['valid'],
         batch_size = batch_size,
         num_workers = num_workers,
         shuffle = shuffle
@@ -241,7 +241,7 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
             # forward pass: compute predicted outputs by passing inputs to the model
             output = model.forward(data)
             # calculate the batch loss
-            loss = criterion(output, target)
+            loss = criterion(output, target) #TODO: ERROR HERE.  Target must be a tensor
             # backward pass: compute gradient of the loss with respect to model parameters
             loss.backward()
             # perform a single optimization step (parameter update)
@@ -300,18 +300,25 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
 
 
 def main():
-    num_workers = 0 # Testing
-    #num_workers = 6 # Final
-    # how many samples per batch to load
-    batch_size = 6 # Testing
-    #batch_size = 64 # Final
+    #num_workers = 0 # Testing
+    #batch_size = 6 # Testing
+    #n_outputs = 1 # Testing
+
+    num_workers = 6 # Final
+    batch_size = 64 # # how many samples per batch to load
+    n_outputs = 50
+
     # percentage of training set to use as validation
     valid_size = 0.2
+    n_epochs = 20
 
-    img_dir = "./images" # For Testing
-    #img_dir = "./landmark_images" #Real Batch
+    #img_dir = "/Users/ujones/Dropbox/Data Science/Python Project Learning/Udacity/Deep Learning/project2-landmark/nd101-c2-landmarks-starter/landmark_project/images" # For Testing
+    #img_dir = "/Users/ujones/Dropbox/Data Science/Python Project Learning/Udacity/Deep Learning/project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images" #Real Batch
+    img_dir = "./project2-landmark/nd101-c2-landmarks-starter/landmark_project/images"
+    #img_dir = "./project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images"
 
-
+    print("Starting ....")
+    print("Creating dataset...")
     data = create_datasets(img_dir=img_dir)
     loaders_scratch = create_dataloaders(
                         data,
@@ -322,7 +329,8 @@ def main():
     use_cuda = check_gpu()
     criterion_scratch = nn.CrossEntropyLoss()
     # instantiate the CNN
-    model_scratch = Net()
+    print("Creating model architecture...")
+    model_scratch = Net(n_outputs=n_outputs) # Testing
 
     # move tensors to GPU if CUDA is available
     if use_cuda:
@@ -330,7 +338,9 @@ def main():
         model_scratch.cuda()
     
     optimizer_scratch = get_optimizer_scratch(model_scratch)
-    model_transfer = train(20, loaders_scratch, model_scratch, optimizer_scratch, criterion_scratch, use_cuda, "model_transfer.pt")
+    print("Training...")
+    model_transfer = train(n_epochs, loaders_scratch, model_scratch, optimizer_scratch, criterion_scratch, use_cuda, "model_transfer.pt")
+    print("Training Complete...")
 
 
 if __name__ == "__main__":

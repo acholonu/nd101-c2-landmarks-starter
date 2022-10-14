@@ -57,11 +57,11 @@ class CustomImageDataset(Dataset):
             #sampler:SubsetRandomSampler=None,  # Why doesn't this work?
         ) -> None:
 
-        self.img_labels = img_labels
-        self.target_labels = list(set(img_labels))
+        self.img_labels = img_labels # The labels for each image
+        self.target_labels = list(set(img_labels)) # the set of distinct target labels
         self.images = images
-        self.transform = transform
-        self.target_transform = target_transform
+        self.transform = transform # Transforming the image
+        self.target_transform = target_transform # Transforming the labels
         #self.sampler=sampler 
 
     def num_outputs(self)->int:
@@ -88,8 +88,9 @@ class CustomImageDataset(Dataset):
 
         if self.transform != None:
             image = self.transform(image) #Failure
-        #if self.target_transform != None:
-        #    label = self.target_transform(label)
+        
+        if self.target_transform != None:
+            label = self.target_transform(label)
         
         #sample = {"image":image, "label":label}
         #return sample

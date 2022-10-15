@@ -74,4 +74,5 @@ You can find license information for the full dataset [on Kaggle](https://www.ka
 - [Pytorch Example from Stanford Student](https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel)
 - [Pytorch Documentation - Dataset Tutorial](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)
 - [Command Line Libraries - Argparse, Click, Docopt](https://realpython.com/comparing-python-command-line-parsing-libraries-argparse-docopt-click/)
--[VSCODE Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations)
+- [VSCODE Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations)
+- [Creating Custom Datasets](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)

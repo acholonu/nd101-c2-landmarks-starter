@@ -1,13 +1,12 @@
-import os
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms #toTensor is the function you want to use
-from torch.utils.data.sampler import SubsetRandomSampler
+#from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
-from torch import Tensor
+#from torch import Tensor
 from torch import stack
 
 from image_data_utils import ImageCollection
@@ -112,7 +111,7 @@ def create_datasets(img_dir, min_img_size_limit=(256,256))->dict:
     dataset = ic.generate_train_valid_dataset(transform=transform_img)
     test_data = ic.generate_test_dataset(transform=transform_img)
     num_images = len(ic.img_labels)
-    num_labels = (dataset['train']).num_outputs()
+    num_labels = ic.num_outputs()
     print(f"Number of Labels: {num_labels}\nNumber of Images: {num_images}")
     
     data ={
@@ -131,21 +130,21 @@ def create_dataloaders(
     )->dict:
     """DataLoader wraps an iterable around the Dataset to enable easy access to the samples."""
 
-    train_loader = torch.utils.data.DataLoader(
+    train_loader = DataLoader(
         data['train'],
         batch_size = batch_size,
         num_workers = num_workers,
         shuffle = shuffle,
     )
 
-    valid_loader = torch.utils.data.DataLoader(
+    valid_loader = DataLoader(
         data['valid'],
         batch_size = batch_size,
         num_workers = num_workers,
         shuffle = shuffle
     )
 
-    test_loader = torch.utils.data.DataLoader(
+    test_loader = DataLoader(
         data['train'], 
         batch_size=batch_size, 
         num_workers=num_workers

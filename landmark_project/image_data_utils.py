@@ -51,21 +51,21 @@ class CustomImageDataset(Dataset):
     def __init__(
             self,
             images:list,
-            img_labels:list, 
+            img_labels:list,
+            target_labels:list,
+            target_map:dict, 
             transform:transforms=None,
             target_transform:transforms = None,
             #sampler:SubsetRandomSampler=None,  # Why doesn't this work?
         ) -> None:
 
         self.img_labels = img_labels # The labels for each image
-        self.target_labels = list(set(img_labels)) # the set of distinct target labels
         self.images = images
         self.transform = transform # Transforming the image
         self.target_transform = target_transform # Transforming the labels
+        self.target_labels = target_labels
+        self.target_map = target_map
         #self.sampler=sampler 
-
-    def num_outputs(self)->int:
-        return len(self.target_labels)
 
     def __len__(self)->int:
         """Returns the total number of images that are in the image directory."""
@@ -84,7 +84,8 @@ class CustomImageDataset(Dataset):
 
         image = read_image(img_path)
         #print(f"Image Type: {type(image)}") # Tensor
-        label = self.img_labels[idx]
+        #label = self.img_labels[idx]
+        label = self.target_map[self.img_labels[idx]] # return the label index
 
         if self.transform != None:
             image = self.transform(image) #Failure
@@ -117,6 +118,8 @@ class ImageCollection():
         """
         self.images:list = None
         self.img_labels:list = None
+        self.target_labels:list = None
+        self.target_map:dict = {}
         self.save_img_size:bool = save_img_size
         self.img_sizes:list = []
         self.img_dir:str = img_dir
@@ -193,6 +196,8 @@ class ImageCollection():
         dataset = CustomImageDataset(
                 images,
                 labels,
+                self.target_labels,
+                self.target_map,
                 transform,
                 target_transform,
                 #sampler
@@ -266,11 +271,32 @@ class ImageCollection():
             
             self.images = images.copy()
             self.img_labels = labels.copy()
+            self.target_labels = list(set(self.img_labels)) # the set of distinct target labels
+            self.target_map = self._create_label_map()
+
         else:
             raise Exception(f"Unable to locate images and labels. Img_dir: {img_dir}")
         return images, labels
 
-      
+    def _create_label_map(self)->dict:
+        label_map ={}
+        i = 0
+        for label in self.target_labels:
+            label_map[label] = i
+            i = i+1
+        return(label_map)
+
+    def get_label_name(self,target_idx:int):
+        """Returns the string value of the label
+
+        Args:
+            target_idx (int): The index for the label in the target_labels list
+        """
+        return(self.target_labels[target_idx])
+
+    def num_outputs(self)->int:
+        return len(self.target_map)
+
     def check_img_dir(self, img_dir:str)->bool:
         """Checks that folders defined in the constructor exist in image directory
 

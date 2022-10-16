@@ -26,7 +26,7 @@ class Net(nn.Module):
     def __init__(
                     self,
                     n_outputs = 50,
-                    image_input_size = 64, #Size of final images from feature functions
+                    image_input_size = 32, #Size of final images from feature functions
                     num_hidden1_nodes = 64,
                     num_hidden2_nodes = 50, 
                 ):
@@ -76,7 +76,7 @@ class Net(nn.Module):
         self.model = nn.Sequential(
             OrderedDict(
                 [
-                    ('fc1', nn.Linear(image_input_size, num_hidden1_nodes)), # fully connected hidden layer 1
+                    ('fc1', nn.Linear(image_input_size * image_input_size, num_hidden1_nodes)), # fully connected hidden layer 1
                     ('dropout1', nn.Dropout(.2)), # dropout layer to help reduce overfitting
                     ('relu1', nn.ReLU()), # activation function. Makes sure values are in a consistent range
                     ('fc2', nn.Linear(num_hidden1_nodes, num_hidden2_nodes)), # fully connected hidden layer 
@@ -90,13 +90,10 @@ class Net(nn.Module):
 
     def forward(self, x):
         ## Define forward behavior 
-        print(f"Foward: x.size() = {x.size()}")  
+        print(f"Foward: x.size() = {x.size()}")  # [64, 3, 256, 256]
         inputs = self.features(x)
-        print(f"inputs.size() = {inputs.size()}")
-        inputs_view = inputs.view(-1, inputs.size(0))
-        print(f"inputs_view.size(): {inputs_view.size()}")
-        #x = x.view(-1, self.image_input_size * self.image_input_size)
-        result = self.model(inputs_view)
+        print(f"inputs.size() = {inputs.size()}") # [6, 64, 1024]
+        result = self.model(inputs) # Original
         return result
 
 
@@ -225,11 +222,11 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
         ###################
         # set the module to training mode
         model.train() # Inherited from nn.Module class
-        for batch_idx, (data, target) in enumerate(loaders['train']):
+        for batch_idx, (data, targets) in enumerate(loaders['train']):
             # move to GPU
+            print(f"spot 2 - batch_idx: {batch_idx}")
             if use_cuda:
-                print(f"spot 2 - batch_idx: {batch_idx}")
-                data, target = data.cuda(), target.cuda()
+                data, targets = data.cuda(), targets.cuda()
 
             ## TODO: find the loss and update the model parameters accordingly
             ## record the average training loss, using something like
@@ -237,17 +234,20 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
             
             # clear the gradients of all optimized variables
             optimizer.zero_grad()
-            # forward pass: compute predicted outputs by passing inputs to the model
-            output = model.forward(data)
-            # calculate the batch loss
-            loss = criterion(output, target) #TODO: ERROR HERE.  Target must be a tensor
-            # backward pass: compute gradient of the loss with respect to model parameters
-            loss.backward()
-            # perform a single optimization step (parameter update)
-            optimizer.step()
-            
-            # update training loss [Ugochi: Note sure if I did this right]
-            train_loss += loss.item()*data.size(0)
+            for sample, target in zip(data, targets):
+                # forward pass: compute predicted outputs by passing inputs to the model
+                output = model.forward(sample)
+                #output = model.forward(output)
+                # calculate the batch loss
+                loss = criterion(output, target) #TODO: ERROR HERE.  Target is a vector of 64, with the same answer
+                # backward pass: compute gradient of the loss with respect to model parameters
+                loss.backward()
+                # perform a single optimization step (parameter update)
+                optimizer.step()
+                
+                # update training loss [Ugochi: Note sure if I did this right]
+                #train_loss += loss.item()*data.size(0)
+                train_loss += loss.item()*sample.size(0)
 
         if train_loss == np.nan:
             raise ValueError("train loss is nan")
@@ -299,13 +299,13 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
 
 
 def main():
-    #num_workers = 0 # Testing
-    #batch_size = 6 # Testing
-    #n_outputs = 1 # Testing
+    num_workers = 0 # Testing
+    batch_size = 6 # Testing
+    n_outputs = 6 # Testing
 
-    num_workers = 6 # Final
-    batch_size = 64 # # how many samples per batch to load
-    n_outputs = 50
+    #num_workers = 6 # Final
+    #batch_size = 64 # # how many samples per batch to load
+    #n_outputs = 50
 
     # percentage of training set to use as validation
     valid_size = 0.2

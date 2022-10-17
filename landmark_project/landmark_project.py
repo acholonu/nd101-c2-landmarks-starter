@@ -233,17 +233,19 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
             ## train_loss = train_loss + ((1 / (batch_idx + 1)) * (loss.data.item() - train_loss))
             
             # clear the gradients of all optimized variables
-            optimizer.zero_grad()
             for sample, target in zip(data, targets):
+                """Each sample changes the weights versus taking the average of the loss and 
+                then updating the weights based on the average loss.
+                """
+                optimizer.zero_grad()
                 # forward pass: compute predicted outputs by passing inputs to the model
                 output = model.forward(sample)
                 #output = model.forward(output)
                 # calculate the batch loss
-                loss = criterion(output, target) #TODO: ERROR HERE.  Target is a vector of 64, with the same answer
-                # backward pass: compute gradient of the loss with respect to model parameters
-                loss.backward()
+                loss = criterion(output, target) 
+                loss.backward() # Locating the weights that produce the most error.  Backward propagating the error
                 # perform a single optimization step (parameter update)
-                optimizer.step()
+                optimizer.step() # updating weights
                 
                 # update training loss [Ugochi: Note sure if I did this right]
                 #train_loss += loss.item()*data.size(0)

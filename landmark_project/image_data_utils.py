@@ -207,7 +207,8 @@ class ImageCollection():
     def generate_train_valid_dataset(
         self, 
         valid_size = 0.2,
-        transform:transforms = None 
+        transform:transforms = None,
+        target_transform:transforms = None 
         ) -> dict:
 
         train_indices = self.folder_indices['train']
@@ -222,18 +223,22 @@ class ImageCollection():
         #train_sampler = SubsetRandomSampler(train_idx)
         #valid_sampler = SubsetRandomSampler(valid_idx)
 
-        train_dataset = self._generate_dataset(train_idx,transform)
-        validation_dataset = self._generate_dataset(valid_idx,transform)
+        train_dataset = self._generate_dataset(train_idx,transform,target_transform=target_transform)
+        validation_dataset = self._generate_dataset(valid_idx,transform, target_transform=target_transform)
         result = {
             "train" : train_dataset,
             "validation" : validation_dataset
         }
         return result
 
-    def generate_test_dataset(self, transform:transforms = None)->CustomImageDataset:
+    def generate_test_dataset(
+        self, 
+        transform:transforms = None,
+        target_tranform:transforms = None,
+        )->CustomImageDataset:
         test_indices = self.folder_indices['test']
         indices = list(range(test_indices[0],test_indices[1]))
-        test_dataset = self._generate_dataset(indices,transform)
+        test_dataset = self._generate_dataset(indices,transform,target_transform=target_tranform)
         return(test_dataset)
         
     def _generate_img_indices(self,img_dir:str):

@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms #toTensor is the function you want to use
+from torchvision.transforms import Lambda
 #from torch.utils.data.sampler import SubsetRandomSampler
 import torch.nn as nn
 import torch.nn.functional as F
@@ -97,19 +98,25 @@ class Net(nn.Module):
         return result
 
 
-def create_datasets(img_dir, min_img_size_limit=(256,256))->dict:
-    ic = ImageCollection(img_dir, min_img_size_limit=min_img_size_limit)
+def create_datasets(img_dir, n_outputs, min_img_size_limit=(256,256))->dict:
+    transform_img, target_transform = get_transforms(n_outputs)
+    ic = ImageCollection(
+        img_dir, 
+        transform=transform_img, 
+        target_transform = target_transform, 
+        min_img_size_limit=min_img_size_limit
+    )
     print(f"Number Filtered: {ic.get_number_filtered()} Remaining images:{ic.get_number_images()}")
     
     df = ic.describe_img_sizes()
     print(df)
     
-    transform_img = get_transform()
-    dataset = ic.generate_train_valid_dataset(transform=transform_img)
-    test_data = ic.generate_test_dataset(transform=transform_img)
+    dataset = ic.generate_train_valid_dataset(transform=transform_img,target_transform=target_transform)
+    test_data = ic.generate_test_dataset(transform=transform_img,target_transform=target_transform)
     num_images = len(ic.img_labels)
     num_labels = ic.num_outputs()
     print(f"Number of Labels: {num_labels}\nNumber of Images: {num_images}")
+    assert(num_images == n_outputs)
     
     data ={
         "train":dataset["train"],
@@ -154,7 +161,7 @@ def create_dataloaders(
     return(loaders_scratch)
 
 
-def get_transform()->transforms.Compose:
+def get_transforms(n_outputs)->transforms.Compose:
     mean=[0.5,0.5,0.5]
     std=[0.5,0.5,0.5]
     image_size = 256
@@ -182,7 +189,11 @@ def get_transform()->transforms.Compose:
         transforms.ToTensor(), # Convert image data to Tensor data type
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # Normalize the data to have a mean of .5 and standard deviation .5)
         ])
-    return(transform_img)
+    
+    #one hot encoded tensor for label.  Assuming label is the numerical index of the label.
+    #Reference: https://pytorch.org/tutorials/beginner/basics/transforms_tutorial.html#lambda-transforms
+    target_transform = Lambda(lambda y: torch.zeros(n_outputs, dtype=torch.float).scatter_(0, torch.tensor(y), value=1))
+    return(transform_img, target_transform)
 
 
 def check_gpu()->bool:
@@ -239,7 +250,7 @@ def train(n_epochs, loaders, model, optimizer, criterion, use_cuda, save_path):
                 """
                 optimizer.zero_grad()
                 # forward pass: compute predicted outputs by passing inputs to the model
-                output = model.forward(sample)
+                output = model(sample)
                 #output = model.forward(output)
                 # calculate the batch loss
                 loss = criterion(output, target) 
@@ -304,14 +315,13 @@ def main():
     num_workers = 0 # Testing
     batch_size = 6 # Testing
     n_outputs = 6 # Testing
+    n_epochs = 20 # Testing
 
     #num_workers = 6 # Final
-    #batch_size = 64 # # how many samples per batch to load
+    #batch_size = 64 #  the number of data samples propagated through the network before the parameters are updated
     #n_outputs = 50
-
-    # percentage of training set to use as validation
-    valid_size = 0.2
-    n_epochs = 20
+    valid_size = 0.2 # percentage of training set to use as validation
+    #n_epochs = 100 #the number times to iterate over the dataset
 
     #img_dir = "/Users/ujones/Dropbox/Data Science/Python Project Learning/Udacity/Deep Learning/project2-landmark/nd101-c2-landmarks-starter/landmark_project/images" # For Testing
     #img_dir = "/Users/ujones/Dropbox/Data Science/Python Project Learning/Udacity/Deep Learning/project2-landmark/nd101-c2-landmarks-starter/landmark_project/landmark_images" #Real Batch
@@ -320,7 +330,7 @@ def main():
 
     print("Starting ....")
     print("Creating dataset...")
-    data = create_datasets(img_dir=img_dir)
+    data = create_datasets(img_dir=img_dir,n_outputs=n_outputs)
     loaders_scratch = create_dataloaders(
                         data,
                         batch_size,

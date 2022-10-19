@@ -76,3 +76,6 @@ You can find license information for the full dataset [on Kaggle](https://www.ka
 - [Command Line Libraries - Argparse, Click, Docopt](https://realpython.com/comparing-python-command-line-parsing-libraries-argparse-docopt-click/)
 - [VSCODE Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations)
 - [Creating Custom Datasets](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)
+- [CNN and Image Folder](https://debuggercafe.com/pytorch-imagefolder-for-training-cnn-models/)
+- [Torchvision Image Folder](https://pytorch.org/vision/stable/generated/torchvision.datasets.ImageFolder.html)
+- [Transfer Tutorial](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html)

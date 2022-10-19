@@ -26,6 +26,7 @@ class Net(nn.Module):
                     self,
                     n_outputs = 50,
                     image_input_size = 32, #Size of final images from feature functions
+                    final_depth = 64,
                     num_hidden1_nodes = 64,
                     num_hidden2_nodes = 50, 
                 ):
@@ -75,7 +76,7 @@ class Net(nn.Module):
         self.model = nn.Sequential(
             OrderedDict(
                 [
-                    ('fc1', nn.Linear(image_input_size * image_input_size, num_hidden1_nodes)), # fully connected hidden layer 1
+                    ('fc1', nn.Linear(image_input_size * image_input_size * final_depth, num_hidden1_nodes)), # fully connected hidden layer 1
                     ('dropout1', nn.Dropout(.2)), # dropout layer to help reduce overfitting
                     ('relu1', nn.ReLU()), # activation function. Makes sure values are in a consistent range
                     ('fc2', nn.Linear(num_hidden1_nodes, num_hidden2_nodes)), # fully connected hidden layer 
@@ -281,7 +282,7 @@ def train(
 
 
 def main():
-    num_workers = 0 # Final
+    num_workers = 4 # Final
     batch_size = 64 #  the number of data samples propagated through the network before the parameters are updated
     n_outputs = 50
     valid_size = 0.2 # percentage of training set to use as validation

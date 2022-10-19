@@ -166,9 +166,7 @@ def get_transforms(n_outputs:int)->transforms.Compose:
 
     # Simplified transform - This works
     transform_img = transforms.Compose([
-        transforms.ToPILImage(), # Convert image data to PIL data type
         transforms.Resize((256,256)), #resize all image down to 256 X 256 pixels
-        #transforms.CenterCrop(image_size), # center crop resultant image to be 224 X 224 image
         transforms.ColorJitter(brightness=.1,hue=.1,contrast=.1,saturation=.1),
         transforms.RandomRotation(degrees=15), #randomly rotate between 15 and -15 degrees
         transforms.ToTensor(), # Convert image data to Tensor data type

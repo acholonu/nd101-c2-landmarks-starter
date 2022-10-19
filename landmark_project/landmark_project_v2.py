@@ -233,7 +233,8 @@ def train(
             # loss.item() extracts the batch loss value as a float, but cross_entropy divides this loss by the num_elements
             # This is why the train_loss equation is defined in this manner.
             # Reference: https://stackoverflow.com/questions/61092523/what-is-running-loss-in-pytorch-and-how-is-it-calculated
-            train_loss += loss.item()*X.size(0)
+            train_loss += loss.item()*X.size(0) # loss per layer.  Each layer can have a different size
+            print(f"TRAIN: batch: {batch_idx}/{n_epochs} train_loss: {train_loss}")
             loss.backward() # Locating the weights that produce the most error.  Backward propagating the error
             optimizer.step() # perform a single optimization step (parameter update), updating weights
 
@@ -248,8 +249,8 @@ def train(
         # For Loop: Sums all the loss across the batch items
         for batch_idx, (X, y) in enumerate(loaders['valid']):
             output = model(X) # forward pass: compute predicted outputs by passing inputs to the model
-            loss = criterion(output, y) # calculate the batch loss 
-            valid_loss += loss.item()*X.size(0) # update average validation loss, running loss
+            v_loss = criterion(output, y) # calculate the batch loss 
+            valid_loss += v_loss.item()*X.size(0) # update average validation loss, running loss
 
         if valid_loss == np.nan:
             raise ValueError("valid loss is nan")
@@ -257,24 +258,19 @@ def train(
         ## TODO: find the loss and update the model parameters accordingly
             ## record the average training loss, using something like
             ## train_loss = train_loss + ((1 / (batch_idx + 1)) * (loss.data.item() - train_loss))
-        train_loss = train_loss + ((1 / (batch_idx + 1)) * (loss.data.item() - train_loss))
-        valid_loss = valid_loss + ((1 / (batch_idx + 1)) * (loss.data.item() - valid_loss))
+            # update training loss
+
+        train_loss += ((1/(batch_idx+1))*(loss.item() - train_loss))
+        valid_loss += ((1/(batch_idx+1))*(v_loss.item() - valid_loss))
             
         # print training/validation statistics 
-        print('Epoch: {} \tTraining Loss: {:.6f} \tValidation Loss: {:.6f}'.format(
-            epoch, 
-            train_loss,
-            valid_loss
-            ))
+        print(f'Epoch: {epoch}/{n_epochs} \tTraining Loss: {train_loss:.6f} \tValidation Loss: {valid_loss:.6f}')
 
         ## TODO: if the validation loss has decreased, save the model at the filepath stored in save_path
         # save model if validation loss has decreased
         if valid_loss <= valid_loss_min:
-            print('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model ...'.format(
-                valid_loss_min,
-                valid_loss)
-            )
             if save_path is not None:
+                print(f'Validation loss decreased ({valid_loss_min:.6f} --> {valid_loss:.6f}).  Saving model ...')
                 torch.save(model.state_dict(), save_path)
             valid_loss_min = valid_loss
         
@@ -296,6 +292,7 @@ def main():
     loaders_scratch = create_dataset(img_dir=img_dir, n_outputs=n_outputs, batch_size=batch_size, num_workers=num_workers, valid_size=valid_size)
     device = check_gpu()
     criterion_scratch = nn.CrossEntropyLoss()
+    #criterion_scratch = nn.CrossEntropyLoss(reduction='sum') # Returns the sum of the loss for each item in the batch
 
     # instantiate the CNN
     print("Creating model architecture...")

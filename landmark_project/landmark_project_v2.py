@@ -47,24 +47,24 @@ class Net(nn.Module):
         self.features = nn.Sequential(
             OrderedDict(
                 [   
-                    ('printsize_0', PrintSize()),
+                    #('printsize_0', PrintSize()),
                     ('conv_layer1',nn.Conv2d(3, 16, 3, padding=1)), #depth is 3, size = (256,256)
                     # Relu activation function?
                     ('relu1', nn.ReLU(True)), # activation function. Makes sure values are in a consistent range, True means do in place
-                    ('printsize_1', PrintSize()),
+                    #('printsize_1', PrintSize()),
                     ('conv_layer2',nn.Conv2d(16, 32, 3, padding=1)), #depth is 16, size = (256,256), padding=1, means put a border of zeroes, 1 pixel wide around the image. Instead of zeros, I could use the strategy of nearest value.
-                    ('printsize_2', PrintSize()),
+                    #('printsize_2', PrintSize()),
                     ('maxpooling_layer1',nn.MaxPool2d(2,2)), #size = (128,128)
                     ('relu2', nn.ReLU(True)), # activation function. Makes sure values are in a consistent range
                     #depth = 32, also cut the resultant filtered image in half with stride =2
-                    ('printsize_3', PrintSize()),
+                    #('printsize_3', PrintSize()),
                     ('conv_layer3',nn.Conv2d(32, 64, 3, padding=1, stride=2)), #depth=64, size=(128,128)
-                    ('printsize_4', PrintSize()),
+                    #('printsize_4', PrintSize()),
                     ('maxpooling_layer2',nn.MaxPool2d(2,2)), #depth=64, size=(64,64)
                     ('relu3', nn.ReLU(True)), # activation function. Makes sure values are in a consistent range
-                    ('printsize_5', PrintSize()),
+                    #('printsize_5', PrintSize()),
                     ('flatten_layer', nn.Flatten()),
-                    ('printsize_6', PrintSize()),
+                    #('printsize_6', PrintSize()),
                 ]
             )
         )
@@ -214,6 +214,9 @@ def train(
     # initialize tracker for minimum validation loss
     valid_loss_min = np.Inf 
     
+    batch_size = loaders['train'].batch_size
+    num_of_batches = len(loaders['train'])
+    num_of_images = batch_size * num_of_batches
     for epoch in range(1, n_epochs+1):
         # initialize variables to monitor training and validation loss
         train_loss = 0.0
@@ -233,7 +236,8 @@ def train(
             # loss.item() extracts the batch loss value as a float, but cross_entropy divides this loss by the num_elements
             # This is why the train_loss equation is defined in this manner.
             # Reference: https://stackoverflow.com/questions/61092523/what-is-running-loss-in-pytorch-and-how-is-it-calculated
-            train_loss += loss.item()*X.size(0) # loss per layer.  Each layer can have a different size
+            #train_loss += loss.item()*X.size(0) # loss per layer.  Each layer can have a different size
+            train_loss += loss.item()
             print(f"TRAIN: batch: {batch_idx}/{n_epochs} train_loss: {train_loss}")
             loss.backward() # Locating the weights that produce the most error.  Backward propagating the error
             optimizer.step() # perform a single optimization step (parameter update), updating weights
@@ -249,8 +253,9 @@ def train(
         # For Loop: Sums all the loss across the batch items
         for batch_idx, (X, y) in enumerate(loaders['valid']):
             output = model(X) # forward pass: compute predicted outputs by passing inputs to the model
-            v_loss = criterion(output, y) # calculate the batch loss 
-            valid_loss += v_loss.item()*X.size(0) # update average validation loss, running loss
+            loss = criterion(output, y) # calculate the batch loss 
+            valid_loss += loss.item() # update average validation loss, running loss
+            #valid_loss += v_loss.item()
 
         if valid_loss == np.nan:
             raise ValueError("valid loss is nan")
@@ -260,8 +265,8 @@ def train(
             ## train_loss = train_loss + ((1 / (batch_idx + 1)) * (loss.data.item() - train_loss))
             # update training loss
 
-        train_loss += ((1/(batch_idx+1))*(loss.item() - train_loss))
-        valid_loss += ((1/(batch_idx+1))*(v_loss.item() - valid_loss))
+        train_loss = train_loss/num_of_images
+        valid_loss = valid_loss/num_of_images
             
         # print training/validation statistics 
         print(f'Epoch: {epoch}/{n_epochs} \tTraining Loss: {train_loss:.6f} \tValidation Loss: {valid_loss:.6f}')
@@ -291,8 +296,7 @@ def main():
 
     loaders_scratch = create_dataset(img_dir=img_dir, n_outputs=n_outputs, batch_size=batch_size, num_workers=num_workers, valid_size=valid_size)
     device = check_gpu()
-    criterion_scratch = nn.CrossEntropyLoss()
-    #criterion_scratch = nn.CrossEntropyLoss(reduction='sum') # Returns the sum of the loss for each item in the batch
+    criterion_scratch = nn.CrossEntropyLoss(reduction='sum')# Returns the sum of the loss for each batch
 
     # instantiate the CNN
     print("Creating model architecture...")

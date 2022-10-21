@@ -90,9 +90,9 @@ class Net(nn.Module):
 
     def forward(self, x):
         ## Define forward behavior 
-        print(f"Foward: x.size() = {x.size()}")  # [64, 3, 256, 256]
+        #print(f"Foward: x.size() = {x.size()}")  # [64, 3, 256, 256]
         inputs = self.features(x)
-        print(f"inputs.size() = {inputs.size()}") # [6, 64, 1024]
+        #print(f"inputs.size() = {inputs.size()}") # [6, 64, 1024]
         result = self.model(inputs) # Original
         return result
 
@@ -227,18 +227,11 @@ def train(
         ###################
         model.train() # Inherited from nn.Module class. set the module to training mode
         for batch_idx, (X, y) in enumerate(loaders['train']):
-            print(f"spot 2 - batch_idx: {batch_idx}")        
-
             optimizer.zero_grad() # clear the gradients of all optimized variables
             output = model(X)  # forward pass: compute predicted outputs of the batch by passing inputs to the model
             loss = criterion(output, y) # calculate the batch loss
             
-            # loss.item() extracts the batch loss value as a float, but cross_entropy divides this loss by the num_elements
-            # This is why the train_loss equation is defined in this manner.
-            # Reference: https://stackoverflow.com/questions/61092523/what-is-running-loss-in-pytorch-and-how-is-it-calculated
-            #train_loss += loss.item()*X.size(0) # loss per layer.  Each layer can have a different size
             train_loss += loss.item()
-            print(f"TRAIN: batch: {batch_idx}/{n_epochs} train_loss: {train_loss}")
             loss.backward() # Locating the weights that produce the most error.  Backward propagating the error
             optimizer.step() # perform a single optimization step (parameter update), updating weights
 

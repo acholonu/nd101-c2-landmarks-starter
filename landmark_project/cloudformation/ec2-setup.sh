@@ -18,7 +18,7 @@ sudo unzip landmark_images.zip
 sudo rm landmark_images.zip
 aws s3 cp s3://uj-scratch/udacity/image_data_utils.py .
 aws s3 cp s3://uj-scratch/udacity/landmark.ipynb .
-aws s3 cp s3://uj-scratch/udacity/torch_simulate.py .
+aws s3 cp s3://uj-scratch/udacity/landmark_project_v2.py .
 mkdir references
 cd references
 aws s3 sync s3://uj-scratch/udacity/references .

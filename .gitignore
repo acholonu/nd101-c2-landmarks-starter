@@ -3,6 +3,7 @@
 .DS_STORE
 
 *.cpython*
+ignore.pt
 
 # images
 *.jpg

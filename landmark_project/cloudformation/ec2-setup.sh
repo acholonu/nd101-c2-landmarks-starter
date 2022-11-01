@@ -9,8 +9,8 @@ unzip awscliv2.zip
 sudo ./aws/install
 sudo rm awscliv2.zip
 cd ~
-aws s3 cp s3://uj-scratch/udacity/ec2-setup.sh .
-chmod +x ec2-setup.sh
+#aws s3 cp s3://uj-scratch/udacity/ec2-setup.sh .
+#chmod +x ec2-setup.sh
 mkdir udacity-project2
 cd udacity-project2
 sudo curl "https://udacity-dlnfd.s3-us-west-1.amazonaws.com/datasets/landmark_images.zip" -o "landmark_images.zip"

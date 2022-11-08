@@ -21,6 +21,7 @@ cifar-10-batches-py
 cifar-10-python.tar.gz
 server-parameters.json
 ml_workspace-parameters.json
+model_transfer.pt
 
 # SSH Keys
 *.pem
